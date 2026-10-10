@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>双机器人协同：把时间加入路径</title>
+  <link rel="stylesheet" href="../assets/course.css">
+</head>
+<body>
+  <main class="lesson">
+    <header class="lesson-header">
+      <p class="eyebrow">学习路径 · 从单机器人 A* 到 MAPF</p>
+      <h1>双机器人协同：把时间加入路径</h1>
+      <p class="lead">你已经理解单机器人 A*。下一步不是给两台机器人各跑一次 A* 就结束，而是检查它们同时行动时会不会占到同一位置，或迎面交换位置。</p>
+    </header>
+
+    <section>
+      <h2>1. 单机路径没有时间信息</h2>
+      <p>普通 A* 给出的是一串位置，例如 A → X → F。两台机器人各自规划时，A* 不知道另一台机器人会在什么时候到哪里。两条单独看来都合法的路线，合在一起可能发生冲突。</p>
+      <p>因此，多机规划要把“时间步”也记下来：机器人的位置不只是一个格子，还要问它在第几步到达。可以把搜索状态先理解成 <strong>(位置, 时间)</strong>。</p>
+      <div class="network-diagram" role="img" aria-label="两个机器人从不同方向经过共同位置 X">
+        <pre>      A
+      │
+D ─── X ─── E
+      │
+      F</pre>
+        <p>R1 从 A 经过 X 去 F；R2 从 E 经过 X 去 D。</p>
+      </div>
+    </section>
+
+    <section>
+      <h2>2. 两类最先要处理的冲突</h2>
+      <h3>同格冲突：同一时刻占据同一位置</h3>
+      <p>R1 和 R2 都单独走最短路时，可能在第 1 步同时到达 X：</p>
+      <table class="schedule">
+        <thead><tr><th>机器人 / 时间</th><th>0</th><th>1</th><th>2</th></tr></thead>
+        <tbody>
+          <tr><th>R1</th><td>A</td><td class="conflict">X</td><td>F</td></tr>
+          <tr><th>R2</th><td>E</td><td class="conflict">X</td><td>D</td></tr>
+        </tbody>
+      </table>
+      <p>第 1 步两台机器人都在 X，这就是<strong>顶点冲突</strong>（vertex conflict）。</p>
+
+      <h3>对向换边冲突：同一步交换相邻位置</h3>
+      <table class="schedule">
+        <thead><tr><th>机器人 / 时间</th><th>0</th><th>1</th><th>发生的动作</th></tr></thead>
+        <tbody>
+          <tr><th>R1</th><td>A</td><td class="conflict">B</td><td>A → B</td></tr>
+          <tr><th>R2</th><td>B</td><td class="conflict">A</td><td>B → A</td></tr>
+        </tbody>
+      </table>
+      <p>它们没有在时间点上停在同一格，却在同一个时间步迎面交换位置。本文把它单独称为<strong>换边冲突</strong>（swapping conflict）。不同论文或程序对 edge conflict 的叫法可能略有差异；我们实现时会明确禁止这种对向交换。</p>
+    </section>
+
+    <section>
+      <h2>3. 等待可以错开到达时间</h2>
+      <p>在上面的交叉路口例子里，让 R2 在 E 安全地等一步，再经过 X：</p>
+      <table class="schedule">
+        <thead><tr><th>机器人 / 时间</th><th>0</th><th>1</th><th>2</th><th>3</th></tr></thead>
+        <tbody>
+          <tr><th>R1</th><td>A</td><td>X</td><td>F</td><td>F</td></tr>
+          <tr><th>R2</th><td>E</td><td class="wait">E 等待</td><td>X</td><td>D</td></tr>
+        </tbody>
+      </table>
+      <p>R1 在第 1 步经过 X；R2 到第 2 步才进入 X。两条路线因此错开了。等待本身也是一步动作，但等待的位置必须安全：如果另一台机器人正要进入 E，留在 E 等待也会冲突。</p>
+      <p class="note">示例假设机器人到达目标后停在那里；所以 R1 在到达 F 后继续占用 F。真实项目还要明确机器人到达目标后是停留、离开，还是接收下一项任务。</p>
+    </section>
+
+    <section>
+      <h2>4. 一个容易实现的基线：按优先级依次规划</h2>
+      <ol>
+        <li>先为 R1 用现有 A* 规划一条路线。</li>
+        <li>记录 R1 每个时间步占据的格子；这些时空位置先为 R1 保留。</li>
+        <li>再规划 R2。搜索时同时考虑当前位置和时间，并允许移动或等待；避开 R1 已保留的位置以及对向换边冲突。</li>
+        <li>再按顺序规划其他机器人。</li>
+      </ol>
+      <p>这叫<strong>优先规划</strong>（prioritized planning）。关键变化是：单机 A* 搜索“格子”；协作规划搜索“格子 + 时间”。先规划的机器人会影响后规划的机器人。</p>
+      <p>固定优先顺序是一个容易理解的起点，但可能因为顺序不合适而找不到路线，即使换一种联合安排其实有解。后面再学习如何调整优先级或使用其他算法。</p>
+    </section>
+
+    <section>
+      <h2>这一阶段的目标</h2>
+      <p>先把问题限制在 <strong>两台机器人、固定起点和终点、离散时间</strong>：能识别同格冲突和对向换边冲突，再让等待或绕行消除冲突。跑通后扩到 3 台机器人，之后再加入取货、送货和任务分配。</p>
+    </section>
+
+    <footer class="lesson-footer">
+      <p>主要参考：</p>
+      <ul>
+        <li><a href="https://ojs.aaai.org/index.php/SOCS/article/view/18510">Stern 等：Multi-Agent Pathfinding: Definitions, Variants, and Benchmarks</a>，统一讨论 MAPF 的时间步、等待动作和冲突类型。</li>
+        <li><a href="https://ojs.aaai.org/index.php/AIIDE/article/view/18726">David Silver：Cooperative Pathfinding</a>，介绍在时空中搜索无冲突路线的协作式 A*。</li>
+        <li><a href="https://arxiv.org/abs/1812.06356">Ma 等：Searching with Consistent Prioritization for Multi-Agent Path Finding</a>，讨论固定优先规划的限制。</li>
+      </ul>
+      <p><a href="1.0-astar-search-basics.html">回看单机器人 A* 课程</a> · <a href="../RESOURCES.md">学习资源目录</a></p>
+      <p>可以随时追问其中任何一步；不需要先做练习。</p>
+    </footer>
+  </main>
+  <p><a href="../examples/astar_learning.py">单机 A* 文本示例</a></p>
+</body>
+</html>
+<!-- Course unit 1.1 -->

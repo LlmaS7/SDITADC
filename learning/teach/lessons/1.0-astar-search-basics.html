@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>A*：从评分到找到路径</title>
+  <link rel="stylesheet" href="../assets/course.css">
+  <script src="../assets/astar-demo.js" defer></script>
+</head>
+<body>
+  <main class="lesson">
+    <header class="lesson-header">
+      <p class="eyebrow">学习路径 · 单机器人网格路径规划</p>
+      <h1>A*：从评分到找到路径</h1>
+      <p class="lead">把前两节合成一条完整思路：地图上的格子如何成为候选位置，A* 如何为它们打分、逐步搜索，最后还原一条从起点到终点的路线。</p>
+    </header>
+
+    <section aria-labelledby="map-title">
+      <h2 id="map-title">1. 先把地图看成格子</h2>
+      <p>在当前项目的简化模型中，每个可通行格子是一个位置；从一个格子走到相邻格子，就是一次移动。墙或货架格不可通行。A* 在这张离散地图上搜索，不会让机器人真的移动。</p>
+      <p>先假设机器人只能上下左右移动，每一步代价都是 1。这个假设足够我们理解 A*，之后再按项目需要扩展。</p>
+    </section>
+
+    <section aria-labelledby="score-title">
+      <h2 id="score-title">2. 用一个分数比较候选路线</h2>
+      <div class="formula">f(n) = g(n) + h(n)</div>
+      <ul>
+        <li><strong>g(n)</strong>：从起点到当前位置已经花费的代价；本例中就是已走步数。</li>
+        <li><strong>h(n)</strong>：从当前位置到目标还要花费多少的估计。</li>
+        <li><strong>f(n)</strong>：经过当前位置的路线总成本估计。</li>
+      </ul>
+      <p>例如，A 点是 4 + 5 = 9，B 点是 6 + 2 = 8。到 B 虽然已经走了更远，但它看起来更靠近终点，所以 A* 会先考虑 B。只看 h 会忽略已经绕过的路；只看 g 又会像盲目向外扩散。A* 把两者合起来。</p>
+    </section>
+
+    <section aria-labelledby="heuristic-title">
+      <h2 id="heuristic-title">3. 网格里怎样估计 h</h2>
+      <p>四方向移动时，可以先用曼哈顿距离估计剩余步数：</p>
+      <div class="formula">h = |当前列 − 目标列| + |当前行 − 目标行|</div>
+      <p>例如演示地图的起点是 (1, 3)，目标是 (8, 3)，忽略障碍时 h = 7。这个估计暂时假装地图上没有墙；真实绕行距离可能更长。障碍不会让实际路程变短，因此在这类网格中它是一个不会高估剩余路程的估计。</p>
+      <p>在这里的四方向、每步代价相同的模型下，配合“更省的到达方式要更新”这条规则，A* 找到目标时得到的是最短路径。</p>
+      <p class="note">本例限定为四方向、每步代价相同。若改成斜向移动或不同地面代价，h 的算法也要跟着调整。</p>
+    </section>
+
+    <section aria-labelledby="loop-title">
+      <h2 id="loop-title">4. A* 怎样一步步搜索</h2>
+      <ol>
+        <li>从起点开始，记下 g = 0，并把起点放进候选区。</li>
+        <li>从候选区取出 f 最小的位置。</li>
+        <li>如果取出的是目标，搜索结束；沿着记录的前一个位置倒着回溯，就能得到完整路线。</li>
+        <li>否则查看它相邻且可通行的位置。若经由当前点走过去更省，就更新该位置的 g 和前驱位置，再把它放回候选区。</li>
+        <li>重复以上步骤。</li>
+      </ol>
+      <p><strong>候选区</strong>存放“已经发现、还没继续查看”的位置。A* 每轮取最低 f 的位置，再扩展它的邻居。障碍格不进入候选区；如果发现更便宜的到达方式，就更新那条记录。</p>
+    </section>
+
+    <section class="demo-section" aria-labelledby="demo-title">
+      <h2 id="demo-title">5. 看 A* 在小地图上搜索</h2>
+      <p>起点到终点之间有一堵墙，墙只在下方留了通道。点“下一步”查看 A* 每轮取出的格子和它加入的候选位置；“自动播放”会连续演示。</p>
+      <div class="controls">
+        <button id="step-button" type="button">下一步</button>
+        <button id="auto-button" type="button">自动播放</button>
+        <button id="reset-button" type="button" class="secondary">重置</button>
+      </div>
+      <p id="demo-status" class="demo-status" aria-live="polite">准备就绪。起点和目标已放入地图。</p>
+      <div id="astar-board" class="board" role="grid" aria-label="A* 搜索演示地图"></div>
+      <div class="legend" aria-label="地图图例">
+        <span><i class="swatch start"></i>起点</span>
+        <span><i class="swatch goal"></i>目标</span>
+        <span><i class="swatch wall"></i>墙</span>
+        <span><i class="swatch open"></i>候选位置</span>
+        <span><i class="swatch closed"></i>已查看</span>
+        <span><i class="swatch route"></i>最终路径</span>
+      </div>
+      <p class="note">格子里的 F 数字是该位置当前记录的 f 分数。自动播放只是在展示规划过程；它不会执行或修改项目里的机器人程序。</p>
+    </section>
+
+    <section aria-labelledby="takeaway-title">
+      <h2 id="takeaway-title">把整套思路连起来</h2>
+      <p>地图提供可走的位置和邻接关系；A* 用 g + h 给候选位置评分；每轮扩展 f 最低的位置；找到目标后沿前驱记录还原路线。接下来就可以把这套逻辑落实成一个很小的 Python 函数，再接到项目地图上。</p>
+    </section>
+
+    <footer class="lesson-footer">
+      <p>本课主要依据 <a href="https://inst.eecs.berkeley.edu/~cs188/textbook/search/informed.html">UC Berkeley CS188：Informed Search</a>，其中说明 A* 选择估计总成本最低的候选节点继续扩展，并定义 f(n) = g(n) + h(n)。</p>
+      <p><a href="../examples/astar_learning.py">纯文本 A* 程序</a> · <a href="1.1-astar-text-program-walkthrough.html">程序逐步解读</a> · <a href="../MISSION.md">本课程任务</a> · <a href="../RESOURCES.md">学习资源目录</a></p>
+      <p>可以随时追问其中任何一步；不需要先做练习。</p>
+      <p><a href="2.0-two-robot-coordination.html">继续：双机器人协同</a></p>
+    </footer>
+  </main>
+</body>
+</html>

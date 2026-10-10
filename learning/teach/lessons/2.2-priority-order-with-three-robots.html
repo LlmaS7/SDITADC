@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>2.2：三个机器人怎样协商通道顺序</title>
+  <link rel="stylesheet" href="../assets/course.css">
+  <style>
+    .lesson { max-width: 940px; margin: 0 auto; padding: 1rem; }
+    .callout { padding: .7rem 1rem; border-left: 4px solid #3478c7; background: #3478c712; }
+    .demo { margin: 1.2rem 0; padding: 1rem; border: 1px solid #8886; border-radius: 10px; }
+    .board-scroll { overflow-x: auto; }
+    .board { position: relative; display: grid; grid-template-columns: repeat(9, 1fr); width: min(100%, 540px); min-width: 360px; aspect-ratio: 9/7; border: 2px solid #667; }
+    .cell { display: grid; place-items: center; min-width: 0; border: 1px solid #aaa7; font-size: clamp(.45rem, 1.4vw, .68rem); text-align: center; line-height: 1.05; }
+    .wall { background: #737984; }
+    .floor { background: #fff; color: #263238; }
+    .aisle { background: #e9f3ff; }
+    .pocket { background: #eff8e9; }
+    .bot { position: absolute; z-index: 2; display: grid; place-items: center; width: clamp(22px, 5vw, 34px); height: clamp(22px, 5vw, 34px); border-radius: 50%; color: white; font-weight: 700; transform: translate(-50%,-50%); box-shadow: 0 2px 6px #0005; transition: left .4s ease, top .4s ease; }
+    .a { background: #2878d0; } .b { background: #cf493d; } .c { background: #378148; }
+    .legend, .controls { display: flex; flex-wrap: wrap; gap: .55rem; margin: .7rem 0; }
+    .legend span { padding: .2rem .45rem; background: #8882; border-radius: 4px; }
+    .controls button { padding: .45rem .7rem; cursor: pointer; }
+    .status { min-height: 3em; }
+    .schedule { width: 100%; border-collapse: collapse; }
+    .schedule th, .schedule td { border: 1px solid #8886; padding: .4rem; text-align: center; }
+    .schedule tr.active { background: #ffe38a; color: #222; font-weight: 700; }
+    pre { overflow-x: auto; padding: .8rem; border-radius: 6px; background: #7771; }
+  </style>
+</head>
+<body>
+<main class="lesson">
+  <header>
+    <p><a href="2.1-time-and-prioritized-planning.html">← 2.1：时空搜索与优先规划</a></p>
+    <h1>2.2：三个机器人怎样协商通道顺序</h1>
+    <p>本课把上一课的优先规划扩成三台机器人，并让程序在固定顺序失败后尝试其他顺序。</p>
+  </header>
+
+  <section>
+    <h2>场景：两个目标挡在一条窄通道上</h2>
+    <p>A 和 C 从侧边通道出发，目标位于主通道；B 要从主通道左端走到右端。A 或 C 如果先到目标并停下，就可能挡住 B。</p>
+    <pre>#########
+###.#####
+###.#####
+#.......#
+#####.###
+#####.###
+#########</pre>
+    <p>A：<code>(3,1) → (3,3)</code>；B：<code>(1,3) → (7,3)</code>；C：<code>(5,5) → (5,3)</code>。坐标为 <code>(x,y)</code>，x 向右、y 向下。</p>
+    <p>以下动画中，小写 a/b/c 表示起点，大写 A/B/C 表示目标，圆点表示机器人当前位置。</p>
+
+    <div class="demo">
+      <div class="board-scroll"><div id="board" class="board" aria-label="三个机器人共用一条主通道"></div></div>
+      <div class="legend"><span>🔵 A</span><span>🔴 B</span><span>🟢 C</span></div>
+      <div class="controls">
+        <button id="blocked" type="button">固定顺序 A → B → C</button>
+        <button id="solution" type="button">换序 B → A → C</button>
+        <button id="prev" type="button">上一步</button>
+        <button id="next" type="button">下一步</button>
+        <button id="play" type="button">播放</button>
+        <button id="reset" type="button">重置</button>
+      </div>
+      <p id="status" class="status" aria-live="polite"></p>
+      <table class="schedule">
+        <thead><tr><th>t</th><th>A</th><th>B</th><th>C</th></tr></thead>
+        <tbody id="rows">
+          <tr><td>0</td><td>(3,1)</td><td>(1,3)</td><td>(5,5)</td></tr>
+          <tr><td>1</td><td>(3,2)</td><td>(2,3)</td><td>(5,4)</td></tr>
+          <tr><td>2</td><td>(3,2)</td><td>(3,3)</td><td>(5,4)</td></tr>
+          <tr><td>3</td><td>(3,3)</td><td>(4,3)</td><td>(5,4)</td></tr>
+          <tr><td>4</td><td>(3,3)</td><td>(5,3)</td><td>(5,4)</td></tr>
+          <tr><td>5</td><td>(3,3)</td><td>(6,3)</td><td>(5,3)</td></tr>
+          <tr><td>6</td><td>(3,3)</td><td>(7,3)</td><td>(5,3)</td></tr>
+        </tbody>
+      </table>
+      <p>表格展示一种安全时序：B 先通过主通道，A 和 C 在侧边等待，等 B 经过各自目标格后再进入。代码的 A* 可能因平局处理选择另一条同样安全的等待路线；应关注占用约束和先后关系。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>为什么“换顺序”有用？</h2>
+    <ol>
+      <li>试 A → B → C：A 先到主通道目标并停留，B 无法通过，因此本轮失败。</li>
+      <li>每个顺序都是独立尝试；失败后必须清空预约表。</li>
+      <li>试 B → A → C：先让 B 通过；再规划 A、C，它们可以在侧边等待并在安全时间进入。</li>
+      <li>对最终方案再检查顶点冲突和对向换边冲突。</li>
+    </ol>
+    <div class="callout"><strong>规划失败的含义：</strong>当前顺序或当前搜索时间范围内没有找到解；它本身不能证明所有协作方案都无解。</div>
+  </section>
+
+  <section>
+    <h2>程序里新增的层次</h2>
+    <p>运行 <a href="../examples/three_robot_priority_search.py">three_robot_priority_search.py</a>：</p>
+    <p>在 SDITADC/learning 目录中运行：</p>
+    <pre>python teach/examples/three_robot_priority_search.py</pre>
+    <ul>
+      <li><code>plan_one</code>：对一台机器人做带时间的 A*，遵守已预约的格子与边，并允许 WAIT。</li>
+      <li><code>plan_order</code>：按给定顺序逐台规划。任何一台失败就停止本轮并报告它。</li>
+      <li><code>permutations</code>：生成小规模机器人的不同顺序；每轮创建全新的预约表。</li>
+      <li>终端输出尝试顺序、失败机器人、路线、等待次数和若干逐时刻地图。</li>
+    </ul>
+    <p>目标格按“到达后停留”处理，因此 A* 只有在确认该格剩余规划时间内不会被其他机器人占用时，才把它当作最终目标。</p>
+  </section>
+
+  <section>
+    <h2>为什么不该直接枚举很多机器人的顺序？</h2>
+    <p>三台机器人有 6 种全排列；十台就有 3,628,800 种。这个程序把所有顺序按需尝试，只适合作为三台机器人规模的教学实例。固定优先级本身也不保证找到解或最短总路径。<a href="https://ojs.aaai.org/index.php/AAAI/article/view/4758">AAAI 关于优先级搜索的研究</a>讨论了这类方法的局限。</p>
+    <p>后续如果要支持更多机器人和持续到达的仓库任务，可学习滚动时域规划：规划有限窗口、执行几步后再规划；也可了解每个时间步动态调整优先级的 PIBT，或反复修复冲突路径子集的 MAPF-LNS。[RHCR 仓库研究](https://ojs.aaai.org/index.php/AAAI/article/view/17344)、[PIBT](https://www.ijcai.org/proceedings/2019/76)、[MAPF-LNS](https://www.ijcai.org/proceedings/2021/568)。
+  </section>
+
+  <section>
+    <h2>自我检查</h2>
+    <ol>
+      <li>为什么 A → B → C 会让 B 无路可走？</li>
+      <li>为什么尝试新优先顺序时必须清空预约表？</li>
+      <li>这个程序为什么适合 3 台机器人学习，却不适合直接扩到几十台？</li>
+    </ol>
+    <details><summary>参考答案</summary>
+      <ol>
+        <li>A 的目标在 B 的唯一通道上，而且机器人到目标后按假设停留。</li>
+        <li>各顺序是独立的试验；旧预约不属于新顺序。</li>
+        <li>程序枚举 N! 种优先顺序，排列数随机器人数量快速增长；而且它仍受固定优先级策略限制。</li>
+      </ol>
+    </details>
+  </section>
+
+  <footer><p><a href="2.1-time-and-prioritized-planning.html">返回 2.1</a></p></footer>
+</main>
+<script>
+  const map = ["#########","###.#####","###.#####","#.......#","#####.###","#####.###","#########"];
+  const route = [
+    {A:[3,1],B:[1,3],C:[5,5],text:"t=0：三台机器人都在起点。"},
+    {A:[3,2],B:[2,3],C:[5,4],text:"t=1：B 开始通过主通道；A、C 留在侧边。"},
+    {A:[3,2],B:[3,3],C:[5,4],text:"t=2：B 经过 A 的目标格；A 等待。"},
+    {A:[3,3],B:[4,3],C:[5,4],text:"t=3：B 离开 A 的目标，A 安全进入。"},
+    {A:[3,3],B:[5,3],C:[5,4],text:"t=4：B 经过 C 的目标；C 在侧边等待。"},
+    {A:[3,3],B:[6,3],C:[5,3],text:"t=5：B 已通过，C 进入目标。"},
+    {A:[3,3],B:[7,3],C:[5,3],text:"t=6：三台机器人都在目标，没有冲突。"}
+  ];
+  const board=document.getElementById("board"), status=document.getElementById("status");
+  const rows=[...document.querySelectorAll("#rows tr")]; let step=0, blocked=false, timer=null;
+  const labels={"3,1":"A起点","3,3":"A目标","1,3":"B起点","7,3":"B目标","5,5":"C起点","5,3":"C目标"};
+  for(let y=0;y<7;y++) for(let x=0;x<9;x++){
+    const cell=document.createElement("div"), wall=map[y][x]==="#";
+    cell.className=`cell ${wall?"wall":"floor"}`;
+    if(!wall&&y===3) cell.classList.add("aisle");
+    if(!wall&&((x===3&&y<3)||(x===5&&y>3))) cell.classList.add("pocket");
+    cell.textContent=labels[`${x},${y}`]||""; board.appendChild(cell);
+  }
+  const bots={};
+  for(const [name,cls] of [["A","a"],["B","b"],["C","c"]]){
+    bots[name]=document.createElement("div"); bots[name].className=`bot ${cls}`; bots[name].textContent=name; board.appendChild(bots[name]);
+  }
+  function move(bot,[x,y]){bot.style.left=`${(x+.5)/9*100}%`;bot.style.top=`${(y+.5)/7*100}%`;}
+  function stop(){if(timer!==null)clearInterval(timer);timer=null;document.getElementById("play").textContent="播放";}
+  function show(){
+    if(blocked){move(bots.A,[3,3]);move(bots.B,[1,3]);move(bots.C,[5,5]);status.textContent="A → B → C：A 停在唯一主通道上，B 规划失败。切换到 B → A → C 查看另一种顺序。";rows.forEach(r=>r.classList.remove("active"));return;}
+    const f=route[step];for(const n of ["A","B","C"])move(bots[n],f[n]);status.textContent=f.text;rows.forEach((r,i)=>r.classList.toggle("active",i===step));
+  }
+  document.getElementById("blocked").onclick=()=>{stop();blocked=true;show();};
+  document.getElementById("solution").onclick=()=>{stop();blocked=false;step=0;show();};
+  document.getElementById("prev").onclick=()=>{stop();blocked=false;step=Math.max(0,step-1);show();};
+  document.getElementById("next").onclick=()=>{stop();blocked=false;step=Math.min(route.length-1,step+1);show();};
+  document.getElementById("reset").onclick=()=>{stop();blocked=false;step=0;show();};
+  document.getElementById("play").onclick=()=>{if(timer!==null){stop();return;}blocked=false;if(step===route.length-1)step=0;show();document.getElementById("play").textContent="暂停";timer=setInterval(()=>{if(step===route.length-1){stop();return;}step++;show();},850);};
+  show();
+</script>
+<script>
+  // Turn any Markdown-style source links in lesson prose into usable HTML links.
+  for (const paragraph of document.querySelectorAll(".lesson p")) {
+    paragraph.innerHTML = paragraph.innerHTML.replace(
+      /\[([^\]]+)\]\((https?:\/\/[^)]+)\)/g,
+      '<a href="$2">$1</a>'
+    );
+  }
+</script>
+</body>
+</html>

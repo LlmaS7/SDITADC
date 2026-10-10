@@ -1,0 +1,266 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>把 A* 扩展到双机器人协同</title>
+  <link rel="stylesheet" href="../assets/course.css">
+  <style>
+    .lesson { max-width: 940px; margin: 0 auto; padding: 1rem; }
+    .demo { margin: 1.25rem 0; padding: 1rem; border: 1px solid #8885; border-radius: 10px; }
+    .demo-layout { display: grid; grid-template-columns: minmax(220px, 340px) 1fr; gap: 1.25rem; align-items: center; }
+    .board { position: relative; display: grid; grid-template-columns: repeat(5, 1fr); aspect-ratio: 1; overflow: hidden; border: 2px solid #777; border-radius: 6px; }
+    .tile { display: grid; place-items: center; min-width: 0; border: 1px solid #aaa6; font-size: .72rem; text-align: center; }
+    .tile.wall { background: #737984; }
+    .tile.open { background: #fff; color: #263238; }
+    .tile.crossing { background: #fff1bf; }
+    .tile small { line-height: 1.1; }
+    .bot { position: absolute; z-index: 2; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; color: white; font-weight: 700; box-shadow: 0 2px 6px #0005; transform: translate(-50%, -50%); transition: left .35s ease, top .35s ease; }
+    .bot-a { background: #2878d0; }
+    .bot-b { background: #d04d38; }
+    .controls { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: .75rem; }
+    .controls button { padding: .45rem .75rem; cursor: pointer; }
+    .status { min-height: 3em; }
+    .schedule { width: 100%; border-collapse: collapse; }
+    .schedule th, .schedule td { padding: .45rem; border: 1px solid #8885; text-align: center; }
+    .schedule tr.active { background: #ffe58a; color: #222; font-weight: 700; }
+    pre { overflow-x: auto; padding: .8rem; border-radius: 6px; background: #7771; }
+    code { overflow-wrap: anywhere; }
+    .takeaway { padding: .75rem 1rem; border-left: 4px solid #4c91dc; background: #4c91dc12; }
+    @media (max-width: 680px) { .demo-layout { grid-template-columns: 1fr; } .board { width: min(100%, 340px); } }
+  </style>
+</head>
+<body>
+<main class="lesson">
+  <header>
+    <p><a href="2.0-two-robot-coordination.html">← 第 2.0 课：冲突是什么</a></p>
+    <h1>把 A* 扩展到双机器人协同</h1>
+    <p>这一课把上一课的冲突概念落到程序里：先让两台机器人各自找最短路，再让 A* 把“时间”和“等待”也纳入搜索。</p>
+  </header>
+
+  <section>
+    <h2>本课结束时，你应该能解释</h2>
+    <ul>
+      <li>为什么多机搜索状态要从“格子”变成“格子 + 时间”。</li>
+      <li>等待为什么是一种合法动作，而不是程序卡住。</li>
+      <li>优先规划怎样用先规划机器人的路径约束后规划机器人。</li>
+      <li>这种简单方法能解决什么，又会在哪些地图上失败。</li>
+    </ul>
+    <p class="takeaway"><strong>一句话：</strong>单机 A* 搜索“我在哪”；协同 A* 搜索“我在什么时间位于哪里”。</p>
+  </section>
+
+  <section>
+    <h2>1. 两条最短路，为什么会撞？</h2>
+    <p>看这张小地图。A 从左边向右走，B 从上方向下走。墙用 <code>#</code> 表示，空地用 <code>.</code> 表示：</p>
+    <pre>#####
+#...#
+#...#
+#...#
+#####</pre>
+    <p>A 的起点是 <code>(1, 2)</code>，目标是 <code>(3, 2)</code>；B 从 <code>(2, 1)</code> 去 <code>(2, 3)</code>。坐标写成 <code>(x, y)</code>，x 向右增加，y 向下增加。</p>
+    <p>两条独立最短路都是两步，但它们在第 1 步同时到达中央格 <code>(2, 2)</code>。路径长度都正确，组合起来却不安全。</p>
+
+    <div class="demo" aria-label="双机器人按时间移动演示">
+      <div class="demo-layout">
+        <div>
+          <div id="board" class="board" aria-label="5 乘 5 的双机器人地图"></div>
+          <div class="controls">
+            <button id="previous" type="button">上一步</button>
+            <button id="next" type="button">下一步</button>
+            <button id="play" type="button">自动播放</button>
+            <button id="reset" type="button">回到开始</button>
+          </div>
+        </div>
+        <div>
+          <h3>优先规划：先 A，再 B</h3>
+          <table class="schedule">
+            <thead><tr><th>时间</th><th>A 的位置</th><th>B 的位置</th></tr></thead>
+            <tbody id="schedule-body">
+              <tr><td>0</td><td>(1, 2)</td><td>(2, 1)</td></tr>
+              <tr><td>1</td><td>(2, 2)</td><td>(2, 1)</td></tr>
+              <tr><td>2</td><td>(3, 2)</td><td>(2, 2)</td></tr>
+              <tr><td>3</td><td>(3, 2)</td><td>(2, 3)</td></tr>
+            </tbody>
+          </table>
+          <p id="status" class="status" aria-live="polite"></p>
+        </div>
+      </div>
+      <p><strong>观察：</strong>B 在时间 0 到 1 留在原地。A 先通过中央格，B 再通过，所以不会同一时刻占用同一格。</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>2. 从单机 A* 到带时间的 A*</h2>
+    <p>单机 A* 的一个搜索节点可以写成 <code>(x, y)</code>。例如 <code>(2, 2)</code> 只表示机器人到了中央格。</p>
+    <p>多机时，同一个格子在不同时间可能安全，也可能冲突，因此节点改为：</p>
+    <pre>状态 = (x, y, t)</pre>
+    <ul>
+      <li><code>(2, 2, 1)</code>：机器人在第 1 个时间步位于中央格。</li>
+      <li><code>(2, 2, 2)</code>：它在第 2 个时间步位于中央格。位置一样，时间不同，是另一个搜索状态。</li>
+    </ul>
+    <p>每次移动或等待都消耗一个时间步。A* 的优先级仍然是 <code>已走时间 + 到目标的估计时间</code>，这里的估计继续使用曼哈顿距离：</p>
+    <pre>f = t + |x - goal_x| + |y - goal_y|</pre>
+    <p>等待不改变位置，但时间增加：<code>(x, y, t) → (x, y, t + 1)</code>。它让机器人能等走廊或路口空出来。</p>
+  </section>
+
+  <section>
+    <h2>3. 优先规划怎样安排两台机器人</h2>
+    <ol>
+      <li>按固定顺序规划机器人，这里先规划 A。</li>
+      <li>把 A 每个时间点所在的格子记成“已占用”。</li>
+      <li>规划 B 时，不允许它在同一时间进入 A 已占用的格子。</li>
+      <li>同时记录 A 每一步经过的边，避免 B 与 A 反向交换位置。</li>
+      <li>如果 B 当前走不了，就让带时间的 A* 尝试等待，直到找到安全路线。</li>
+    </ol>
+    <p>上一课提到的两种冲突，对应两类预约：</p>
+    <ul>
+      <li><strong>格子预约：</strong><code>(时间, 位置)</code>，检查顶点冲突。</li>
+      <li><strong>边预约：</strong><code>(时间, 起点, 终点)</code>，检查两台机器人是否反向交换位置。</li>
+    </ul>
+    <p>本例中，A 的路径预约了 <code>(1, (2, 2))</code>。B 如果第 1 步进入中央格，就会被拒绝；等待一步后，B 在第 2 步到达中央格，此时 A 已经离开。</p>
+  </section>
+
+  <section>
+    <h2>4. 对照程序读重点</h2>
+    <p>对应的纯文本 Python 程序在 <a href="../examples/two_robot_prioritized.py">two_robot_prioritized.py</a>。它不依赖 pygame，使用项目虚拟环境里的 Python 即可运行：</p>
+    <p>在 SDITADC/learning 目录中运行：</p>
+    <pre>python teach/examples/two_robot_prioritized.py</pre>
+    <p>重点看下面几处，不需要一次读懂每个标点：</p>
+    <ul>
+      <li><code>ACTIONS</code> 多了 <code>(0, 0)</code>，它就是等待动作。</li>
+      <li><code>State = (x, y, time)</code> 表示搜索节点包含时间。</li>
+      <li><code>reserved_vertices</code> 存储某一时刻不能进入的格子。</li>
+      <li><code>reserved_edges</code> 存储已规划机器人的移动方向，用于拒绝反向交换。</li>
+      <li><code>reserve_path</code> 在机器人抵达目标后，也把目标格继续标记为占用。本例假设机器人会停在目标处。</li>
+      <li><code>ROBOTS</code> 字典的顺序就是优先级顺序：A 先规划，B 后规划。</li>
+    </ul>
+    <p>程序先运行两次“各自规划”，打印出冲突；再按 A、B 顺序规划，打印出带等待的安全时间表。对照终端和上面的动画，检查每个时间点的位置。</p>
+  </section>
+
+  <section>
+    <h2>5. 这套方法的边界</h2>
+    <p>优先规划简单，适合先做出可解释的小型多机器人程序。它把先规划机器人的路线固定下来，再让后面的机器人绕开。</p>
+    <p>固定的先后顺序可能让某台机器人无路可走，即使换一个规划顺序就能成功。因此，“找不到路”不总是说明地图上没有任何多机解；也可能只是这次优先级选择不合适。更先进的方法会重新安排优先级，或同时搜索多台机器人的联合状态。</p>
+    <p>当前程序为了让概念清楚，还使用了固定目标、四方向移动、每步耗时相同、目标处停留、有限搜索时间。之后接入仓库地图前，再逐步放宽这些假设。</p>
+  </section>
+
+  <section>
+    <h2>6. 学习检查</h2>
+    <ol>
+      <li>为什么 <code>(2, 2, 1)</code> 和 <code>(2, 2, 2)</code> 要视为两个状态？</li>
+      <li>程序里的等待动作改变了什么，没有改变什么？</li>
+      <li>如果交换 <code>ROBOTS</code> 中 A、B 的顺序，谁先预约路径？</li>
+      <li>优先规划返回“没有路径”，能否证明不存在安全方案？为什么？</li>
+    </ol>
+    <details>
+      <summary>展开参考答案</summary>
+      <ol>
+        <li>虽然位置相同，但其他机器人在这两个时间点的占用情况可能不同。</li>
+        <li>时间增加 1，位置不变。</li>
+        <li>字典中排在前面的机器人先规划并留下预约。</li>
+        <li>不能。当前顺序可能造成死路，改顺序或联合规划可能找到方案。</li>
+      </ol>
+    </details>
+  </section>
+
+  <section>
+    <h2>本课之后</h2>
+    <p>下一步把这个例子改成可重复的小实验：调整起点和目标、交换优先级、统计等待步数，并让程序自动报告冲突。之后再把简单地图替换成 MovingAI 地图。</p>
+    <p>参考：<a href="https://ojs.aaai.org/index.php/SOCS/article/view/18510">MAPF 冲突与目标行为术语综述</a>、<a href="https://ojs.aaai.org/index.php/AIIDE/article/view/18726">Cooperative Pathfinding</a>、<a href="https://arxiv.org/abs/1812.06356">Prioritized Planning for Multi-Agent Path Finding</a>。</p>
+    <p><a href="2.0-two-robot-coordination.html">返回第 2.0 课</a></p>
+  </section>
+</main>
+
+<script>
+  const positions = [
+    { a: [1, 2], b: [2, 1], note: "t=0：两台机器人都在起点。" },
+    { a: [2, 2], b: [2, 1], note: "t=1：A 通过中央格，B 等待，因此没有顶点冲突。" },
+    { a: [3, 2], b: [2, 2], note: "t=2：A 到达目标，B 才进入中央格。" },
+    { a: [3, 2], b: [2, 3], note: "t=3：B 到达目标；A 按假设停在自己的目标处。" },
+  ];
+  const board = document.getElementById("board");
+  const status = document.getElementById("status");
+  const rows = [...document.querySelectorAll("#schedule-body tr")];
+  let step = 0;
+  let timer = null;
+
+  for (let y = 0; y < 5; y += 1) {
+    for (let x = 0; x < 5; x += 1) {
+      const tile = document.createElement("div");
+      const wall = x === 0 || y === 0 || x === 4 || y === 4;
+      tile.className = `tile ${wall ? "wall" : "open"}`;
+      if (!wall) {
+        const labels = { "1,2": "A 起点", "3,2": "A 目标", "2,1": "B 起点", "2,3": "B 目标", "2,2": "交叉格" };
+        if (labels[`${x},${y}`]) tile.innerHTML = `<small>${labels[`${x},${y}`]}</small>`;
+        if (x === 2 && y === 2) tile.classList.add("crossing");
+      }
+      board.appendChild(tile);
+    }
+  }
+
+  function addBot(name, colorClass) {
+    const bot = document.createElement("div");
+    bot.className = `bot ${colorClass}`;
+    bot.textContent = name;
+    board.appendChild(bot);
+    return bot;
+  }
+
+  const botA = addBot("A", "bot-a");
+  const botB = addBot("B", "bot-b");
+
+  function moveBot(bot, position) {
+    bot.style.left = `${(position[0] + 0.5) * 20}%`;
+    bot.style.top = `${(position[1] + 0.5) * 20}%`;
+  }
+
+  function showStep() {
+    const current = positions[step];
+    moveBot(botA, current.a);
+    moveBot(botB, current.b);
+    status.textContent = current.note;
+    rows.forEach((row, index) => row.classList.toggle("active", index === step));
+  }
+
+  function stopPlaying() {
+    if (timer !== null) window.clearInterval(timer);
+    timer = null;
+    document.getElementById("play").textContent = "自动播放";
+  }
+
+  document.getElementById("previous").addEventListener("click", () => {
+    stopPlaying();
+    step = Math.max(0, step - 1);
+    showStep();
+  });
+  document.getElementById("next").addEventListener("click", () => {
+    stopPlaying();
+    step = Math.min(positions.length - 1, step + 1);
+    showStep();
+  });
+  document.getElementById("reset").addEventListener("click", () => {
+    stopPlaying();
+    step = 0;
+    showStep();
+  });
+  document.getElementById("play").addEventListener("click", () => {
+    if (timer !== null) {
+      stopPlaying();
+      return;
+    }
+    if (step === positions.length - 1) step = 0;
+    showStep();
+    document.getElementById("play").textContent = "暂停";
+    timer = window.setInterval(() => {
+      if (step === positions.length - 1) {
+        stopPlaying();
+        return;
+      }
+      step += 1;
+      showStep();
+    }, 900);
+  });
+  showStep();
+</script>
+</body>
+</html>

@@ -1,0 +1,207 @@
+:root {
+  color-scheme: light;
+  font-family: "Segoe UI", "Microsoft YaHei", sans-serif;
+  color: #202a35;
+  background: #f7f8fa;
+  line-height: 1.65;
+}
+
+* { box-sizing: border-box; }
+
+body { margin: 0; }
+
+.lesson {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 30px 24px 56px;
+}
+
+.lesson-header { margin-bottom: 30px; }
+
+.eyebrow {
+  margin: 0 0 6px;
+  color: #52657a;
+  font-size: 0.92rem;
+}
+
+h1, h2 { line-height: 1.25; }
+
+h1 {
+  margin: 0 0 12px;
+  font-size: clamp(1.8rem, 5vw, 2.5rem);
+}
+
+h2 {
+  margin: 30px 0 10px;
+  font-size: 1.35rem;
+}
+
+p { margin: 10px 0; }
+
+.lead { max-width: 70ch; color: #45566a; }
+
+.formula {
+  margin: 14px 0;
+  padding: 12px 16px;
+  border-left: 4px solid #3b6ea5;
+  background: #edf3f9;
+  font: 600 1.15rem/1.5 Consolas, "Courier New", monospace;
+}
+
+.note { color: #566474; font-size: 0.94rem; }
+
+.network-diagram {
+  margin: 14px 0;
+  padding: 12px 16px;
+  border-left: 4px solid #3b6ea5;
+  background: #edf3f9;
+}
+
+.network-diagram pre {
+  margin: 0;
+  font: 600 1rem/1.35 Consolas, "Courier New", monospace;
+}
+
+.network-diagram p { margin-bottom: 0; }
+
+.schedule {
+  width: 100%;
+  margin: 12px 0;
+  border-collapse: collapse;
+  text-align: center;
+}
+
+.schedule th, .schedule td {
+  padding: 7px 10px;
+  border: 1px solid #d9e0e7;
+}
+
+.schedule th:first-child { text-align: left; }
+.schedule .conflict { background: #f7dddd; color: #7f1d1d; font-weight: 700; }
+.schedule .wait { background: #fff0c2; }
+
+.demo-section {
+  margin-top: 28px;
+  padding: 18px;
+  border: 1px solid #d9e0e7;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.demo-section h2 { margin-top: 0; }
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 14px 0 8px;
+}
+
+button {
+  padding: 8px 13px;
+  border: 1px solid #315f8c;
+  border-radius: 5px;
+  color: #fff;
+  background: #315f8c;
+  font: inherit;
+  cursor: pointer;
+}
+
+button.secondary {
+  color: #273747;
+  background: #fff;
+  border-color: #aebbc8;
+}
+
+button:disabled { opacity: 0.55; cursor: default; }
+
+button:focus-visible { outline: 3px solid #f2b84b; outline-offset: 2px; }
+
+.demo-status { min-height: 1.7em; color: #334a60; }
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(28px, 42px));
+  gap: 3px;
+  width: max-content;
+  max-width: 100%;
+  overflow-x: auto;
+  margin: 14px 0;
+}
+
+.cell {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(28px, 6vw, 42px);
+  aspect-ratio: 1;
+  border: 1px solid #d7dee6;
+  border-radius: 3px;
+  background: #fff;
+  transition: background-color 140ms ease, border-color 140ms ease;
+}
+
+.cell .mark { font-weight: 700; font-size: 0.92rem; }
+
+.cell .cost {
+  position: absolute;
+  top: 0;
+  right: 2px;
+  color: #536478;
+  font: 9px/1.1 Consolas, monospace;
+}
+
+.cell.is-wall { border-color: #6e7781; background: #6e7781; }
+.cell.is-open { background: #fff0c2; }
+.cell.is-closed { background: #dce8f2; }
+.cell.is-current { outline: 3px solid #db8a00; outline-offset: -3px; z-index: 1; }
+.cell.is-path { background: #bde5c8; border-color: #5b9b6e; }
+.cell.is-start { color: #14532d; }
+.cell.is-goal { color: #7f1d1d; }
+.cell.is-wall .mark { color: #fff; }
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 15px;
+  color: #45566a;
+  font-size: 0.9rem;
+}
+
+.legend span { display: inline-flex; align-items: center; gap: 5px; }
+
+.swatch {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid #aab5c0;
+  border-radius: 3px;
+  background: #fff;
+}
+
+.swatch.start { background: #d8f1df; }
+.swatch.goal { background: #f7dddd; }
+.swatch.wall { background: #6e7781; }
+.swatch.open { background: #fff0c2; }
+.swatch.closed { background: #dce8f2; }
+.swatch.route { background: #bde5c8; }
+
+.lesson-footer {
+  margin-top: 32px;
+  padding-top: 14px;
+  border-top: 1px solid #d9e0e7;
+  color: #4a5867;
+  font-size: 0.94rem;
+}
+
+a { color: #1e5c91; }
+
+@media (max-width: 520px) {
+  .lesson { padding: 20px 14px 40px; }
+  .demo-section { padding: 13px; }
+  .board { gap: 2px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; }
+}
