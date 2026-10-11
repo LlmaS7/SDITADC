@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>SDITADC · v0.2_preview</title>
+  <link rel="stylesheet" href="./styles.css">
+  <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">S</span><div><h1>三机仓库协作</h1><p>SDITADC <span>v0.2 preview</span></p></div></div>
+    <div class="header-stats"><span id="connection" class="badge">正在连接</span><span>仿真时刻 <strong id="tick">0000</strong></span><span>地图种子 <strong id="seed">—</strong></span></div>
+  </header>
+  <nav class="toolbar" aria-label="仿真控制">
+    <button id="pause" class="primary" disabled>暂停</button>
+    <button id="step" disabled>单步</button>
+    <label class="speed-label">速度 <select id="speed" aria-label="仿真速度"><option value="1">1×</option><option value="2" selected>2×</option><option value="4">4×</option><option value="8">8×</option></select></label>
+    <span class="divider"></span>
+    <button id="random" disabled>＋ 随机任务</button>
+    <button id="new-task" disabled>自定义任务</button>
+    <button id="auto" aria-pressed="false" disabled>自动生成：关</button>
+    <span class="toolbar-spacer"></span>
+    <button id="retry" disabled>重试规划</button>
+    <button id="save" disabled>保存记录</button>
+    <button id="load" disabled>加载记录</button>
+    <button id="reset" disabled>重置</button>
+  </nav>
+  <main class="workspace">
+    <section class="visuals" aria-label="同步仓库预览">
+      <article class="panel scene-panel">
+        <div class="panel-title"><div><span class="eyebrow">空间视图</span><h2>3D 仓库预览</h2></div><div class="panel-tools"><span class="hint">拖动旋转 · 滚轮缩放</span><button id="recenter" class="small">恢复视角</button></div></div>
+        <div id="scene3d" class="scene"><div id="scene-error" class="scene-message" hidden></div><div class="scene-legend"><i class="dot blue"></i> R1 <i class="dot orange"></i> R2 <i class="dot green"></i> R3 <span>货架 · 作业点 · 路线</span></div></div>
+      </article>
+      <article class="panel map-panel">
+        <div class="panel-title"><div><span class="eyebrow">俯视视图</span><h2>2D 路径预览</h2></div><span class="hint">与 3D 使用同一时刻与位置</span></div>
+        <div class="map-body"><div class="map-canvas-wrap"><canvas id="map2d" aria-label="仓库二维地图"></canvas></div><aside class="robot-strip"><div class="legend-text"><span>取货点</span><span>配送点</span><span>停车位</span></div><div id="robots"></div><p class="subtle map-tip">点击右侧任务，查看其取送位置。机器人上方的小货箱表示已载货。</p></aside></div>
+      </article>
+    </section>
+    <aside class="panel task-panel" aria-label="任务中心">
+      <div class="panel-title"><div><span class="eyebrow">任务调度</span><h2>任务中心 <span id="task-count" class="count">0</span></h2></div><span id="completed-count" class="subtle">完成 0</span></div>
+      <div class="task-filters" role="group" aria-label="任务筛选"><button data-filter="all" class="active">全部</button><button data-filter="active">未完成</button><button data-filter="completed">已完成</button></div>
+      <div id="tasks" class="task-list"><p class="empty">正在载入普通仓库场景…</p></div>
+      <section class="task-detail" aria-label="选中任务详情"><div class="detail-heading"><h3 id="detail-title">选择一个任务</h3><button id="clear-selection" class="text-button" title="清除位置高亮">清除高亮</button></div><p id="detail-route">点击任务查看其取送位置</p><p id="detail-note" class="subtle"></p><div class="task-actions"><button id="raise" disabled>提升一级</button><button id="urgent" class="danger" disabled>设为紧急</button><button id="cancel" disabled>取消任务</button></div></section>
+      <section class="metrics" aria-label="运行指标"><div><span>平均完成</span><strong id="avg-completion">0.0 <small>步</small></strong></div><div><span>移动距离</span><strong id="distance">0 <small>格</small></strong></div><div><span>路径等待</span><strong id="waits">0 <small>步</small></strong></div><div><span>最近规划</span><strong id="plan-ms">0 <small>ms</small></strong></div><p id="assignment-note">每轮精确匹配 · CBS 路径协调</p></section>
+    </aside>
+  </main>
+  <footer class="statusbar"><span id="status-message">正在初始化仓库…</span><span id="mode-note">普通场景 · 三台机器人</span></footer>
+  <dialog id="task-dialog"><form id="task-form"><div class="dialog-title"><h2>新增搬运任务</h2><button type="button" id="close-dialog" class="text-button" aria-label="关闭新增任务">✕</button></div><p class="subtle">选择取货作业点、配送点和紧急等级。</p><label>取货点<select id="pickup" name="pickup"></select></label><label>配送点<select id="delivery" name="delivery"></select></label><label>任务等级<select id="priority" name="priority"><option value="1">1 · 普通</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5 · 紧急</option></select></label><p class="subtle">新增窗口打开后仿真暂停，创建后可手动继续。</p><div class="dialog-actions"><button type="button" id="back-dialog">返回</button><button type="submit" class="primary">创建任务</button></div></form></dialog>
+  <script type="module" src="./app.js"></script>
+</body>
+</html>
