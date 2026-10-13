@@ -1,10 +1,10 @@
 import { Map2D } from './map2d.js';
 import { Scene3D } from './scene3d.js';
 import { SimulationClient, openDebugWindow } from './client.js';
+import { robotColor } from './robot-colors.js';
 
 const $=id=>document.getElementById(id);
 const map2d=new Map2D($('map2d')),scene3d=new Scene3D($('scene3d'));
-const colors=['#4bb4fc','#ffb354','#76d4ad'];
 let state=null,selected=null,selectionInitialized=false,filter='all',signature='',mapKey='';
 let transient='',transientUntil=0,positions={};
 const finished=t=>t.status==='completed';
@@ -64,7 +64,9 @@ function accept(value,previous) {
   $('overview-pending').textContent=state.metrics.pending;
   $('task-count').textContent=state.metrics.visible_total;
   $('completed-count').textContent=`完成 ${state.metrics.completed} / ${state.metrics.visible_total}`;
-  $('robots').innerHTML=state.robots.map(r=>`<article class="robot-card"><h3><span style="color:${colors[r.id-1]}">R${r.id}</span><span>${r.label}</span></h3><p>${r.task_id?taskName(r.task_id):'等待接单'}${r.next_task_id?' · 随后 '+taskName(r.next_task_id):''}</p><p>已完成 ${r.completed} 项${r.loaded?' · 已载货':''}</p></article>`).join('');
+  $('robots').innerHTML=state.robots.map(r=>`<article class="robot-card"><h3><span style="color:${robotColor(r.id)}">R${r.id}</span><span>${r.label}</span></h3><p>${r.task_id?taskName(r.task_id):'等待接单'}${r.next_task_id?' · 随后 '+taskName(r.next_task_id):''}</p><p>已完成 ${r.completed} 项${r.loaded?' · 已载货':''}</p></article>`).join('');
+  $('fleet-summary').textContent=`${state.robots.length} 台机器人 · 单件搬运`;
+  $('robot-legend').innerHTML=state.robots.map(r=>`<span class="robot-key"><i class="dot" style="background:${robotColor(r.id)}"></i> R${r.id}</span>`).join('')+'<span class="legend-note">货架 · 作业点 · 路线</span>';
   renderTasks();scene3d.update(state,chosen());
 }
 
@@ -72,6 +74,7 @@ $('pause').onclick=()=>client.command('pause',{paused:!state.paused});
 $('speed').onchange=()=>client.command('speed',{value:Number($('speed').value)});
 $('debug-window').onclick=async()=>{try{await openDebugWindow();}catch(e){toast(e.message);}};
 $('recenter').onclick=()=>scene3d.recenter();
+$('recenter-2d').onclick=()=>map2d.recenter();
 $('raise').onclick=()=>{const t=chosen();if(t) client.command('priority',{task_id:t.id,priority:t.priority+1});};
 $('urgent').onclick=()=>{const t=chosen();if(t) client.command('priority',{task_id:t.id,priority:5});};
 $('cancel').onclick=()=>{const t=chosen();if(t) client.command('cancel',{task_id:t.id});};
@@ -94,5 +97,5 @@ function renderFrame() {
   $('status-message').textContent=performance.now()<transientUntil?transient:!client.connected?'连接中断，画面保留最后状态':failed?'路线暂时不可用，系统已暂停。可在调试窗口查看详情。':state.message;
 }
 function animate(){renderFrame();requestAnimationFrame(animate);}
-window.previewDebug={inspect:()=>{renderFrame();return {ready:!!state,tick:state?.tick,generation:state?.generation,viewTicks:[$('map2d').dataset.tick,$('scene3d').dataset.tick],...scene3d.inspect(),canvas2d:Object.entries(positions).map(([id,p])=>({id:Number(id),x:p[0],y:p[1]})),taskIds:state?.tasks.map(t=>t.id) || []};}};
+window.previewDebug={inspect:()=>{renderFrame();return {ready:!!state,mapId:state?.map.id,mapSize:state?[state.map.width,state.map.height]:null,tick:state?.tick,generation:state?.generation,viewTicks:[$('map2d').dataset.tick,$('scene3d').dataset.tick],map2d:map2d.inspect(),...scene3d.inspect(),canvas2d:Object.entries(positions).map(([id,p])=>({id:Number(id),x:p[0],y:p[1]})),taskIds:state?.tasks.map(t=>t.id) || []};}};
 client.poll();animate();

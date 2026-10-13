@@ -1,4 +1,4 @@
-"""Conflict-Based Search for the three ordered pickup/delivery itineraries.
+"""Conflict-Based Search for ordered pickup/delivery itineraries of a fleet.
 
 High-level constraints branch on both robots; ordinary restrictions are
 inserted first on ties. A budget exhaustion is reported as timeout, not no-solution.
@@ -19,6 +19,7 @@ class PlanResult:
     seconds: float
     expanded: int
     cost: tuple = ()
+    method: str = "CBS"
 
 
 def plan(warehouse, starts, itineraries, seconds=PLAN_SECONDS, horizon=PLAN_HORIZON):

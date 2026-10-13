@@ -2,7 +2,7 @@
 import json
 from dataclasses import asdict
 from datetime import datetime
-from config import OUTPUTS, ROOT, VERSION
+from config import OUTPUTS, ROOT, VERSION, DEFAULT_MAP, DEFAULT_ROBOT_COUNT
 from simulation import Simulation
 
 
@@ -15,11 +15,15 @@ def write_json(path, value):
 
 def save(sim):
     scenario = {"version": VERSION, "seed": sim.warehouse.seed,
+                "robot_count": len(sim.robots),
+                "map_id": sim.warehouse.map_id, "map_definition": sim.warehouse.export_map(),
                 "events": sim.events + sim.replay_events}
     write_json(OUTPUTS / "last_scenario.json", scenario)
     view = sim.snapshot()
     report = {"saved_at": datetime.now().astimezone().isoformat(), "tick": sim.tick,
               "seed": sim.warehouse.seed, "metrics": view.metrics,
+              "map_id": sim.warehouse.map_id, "map_name": sim.warehouse.name,
+              "robot_count": len(sim.robots),
               "assignment": sim.assignment, "tasks": [asdict(t) for t in sim.tasks.values()],
               "robots": [asdict(r) for r in sim.robots], "frames": sim.frames,
               "events": sim.events}
@@ -34,7 +38,9 @@ def load(path=None):
     data = json.loads(path.read_text(encoding="utf-8"))
     if data.get("version") not in ("0.1_preview", "0.2_preview", VERSION):
         raise ValueError("场景版本不匹配")
-    sim = Simulation(int(data["seed"]), initial_tasks=0)
+    sim = Simulation(int(data["seed"]), initial_tasks=0,
+                     map_id=data.get("map_id", DEFAULT_MAP), map_definition=data.get("map_definition"),
+                     robot_count=data.get("robot_count", DEFAULT_ROBOT_COUNT))
     events = data.get("events", [])
     if any(not isinstance(e.get("tick"), int) or e["tick"] < 0 for e in events):
         raise ValueError("场景事件时间无效")

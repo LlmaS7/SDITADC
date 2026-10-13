@@ -4,20 +4,21 @@ Planning covers the remaining current job, a reserved emergency job if any,
 and distinct parking endpoints. UI commands are applied only at tick boundaries.
 """
 from copy import deepcopy
-from itertools import permutations
 from random import Random
 from config import (DEFAULT_SEED, LOAD_TICKS, UNLOAD_TICKS, INITIAL_TASKS,
-                    AUTO_INTERVAL, PLAN_SECONDS, PLAN_HORIZON)
+                    AUTO_INTERVAL, PLAN_SECONDS, PLAN_HORIZON, DEFAULT_MAP, FLEET_CBS_SECONDS)
 from models import Robot, Task, Waypoint, View, FINISHED
 from warehouse import Warehouse
-from scheduler import Slot, exact_matching, completion_cost
+from scheduler import Slot, exact_matching, completion_cost, optimal_parking
 from planning.cbs import plan
+from planning.prioritized import plan_reserved
 from planning.validation import first_conflict
 
 
 class Simulation:
-    def __init__(self, seed=DEFAULT_SEED, initial_tasks=INITIAL_TASKS):
-        self.warehouse = Warehouse(seed)
+    def __init__(self, seed=DEFAULT_SEED, initial_tasks=INITIAL_TASKS,
+                 map_id=DEFAULT_MAP, map_definition=None, robot_count=None):
+        self.warehouse = Warehouse(seed, map_id, map_definition, robot_count)
         self.rng = Random(seed ^ 0xA913)
         self.robots = [Robot(i + 1, p, p, p, path=[p])
                        for i, p in enumerate(self.warehouse.starts)]
@@ -37,7 +38,8 @@ class Simulation:
         self.assignment = {}
         self.metrics = {"planning_seconds": 0.0, "last_plan_ms": 0.0,
                         "plans": 0, "cbs_nodes": 0, "preemptions": 0,
-                        "collisions": 0, "recovery_attempts": 0}
+                        "collisions": 0, "recovery_attempts": 0,
+                        "reservation_plans": 0, "planner": "CBS"}
         for _ in range(initial_tasks):
             self.random_task()
 
@@ -189,8 +191,7 @@ class Simulation:
         for robot in self.robots:
             future = self.tasks.get(robot.next_task_id or robot.task_id)
             origins.append(future.delivery if future else robot.position)
-        parks = min(permutations(self.warehouse.parking, 3), key=lambda places:
-                    sum(self.warehouse.distance(p, q) for p, q in zip(origins, places)))
+        parks = optimal_parking(self.warehouse, origins)
         for robot, parking in zip(self.robots, parks):
             robot.parking = parking
             if robot.task_id is None:
@@ -222,7 +223,17 @@ class Simulation:
         self.dispatch()
         starts = {r.id: r.position for r in self.robots}
         routes = {r.id: self.itinerary(r) for r in self.robots}
-        result = plan(self.warehouse, starts, routes)
+        # Longer maps need a horizon covering travel and service, even without conflicts.
+        lower_bound = 0
+        for robot_id, points in routes.items():
+            origin, length = starts[robot_id], 0
+            for waypoint in points:
+                length += self.warehouse.distance(origin, waypoint.position) + waypoint.hold
+                origin = waypoint.position
+            lower_bound = max(lower_bound, length)
+        horizon = max(PLAN_HORIZON, lower_bound + 40)
+        budget = PLAN_SECONDS if len(self.robots)<=3 else FLEET_CBS_SECONDS
+        result = plan(self.warehouse, starts, routes, seconds=budget, horizon=horizon)
         self.metrics["plans"] += 1
         self.metrics["planning_seconds"] += result.seconds
         self.metrics["last_plan_ms"] = result.seconds * 1000
@@ -230,11 +241,17 @@ class Simulation:
         if result.status != "success":
             # One bounded retry: longer horizon and a fresh constraint tree.
             self.metrics["recovery_attempts"] += 1
-            retry = plan(self.warehouse, starts, routes, PLAN_SECONDS, PLAN_HORIZON * 2)
+            retry = plan(self.warehouse, starts, routes, budget, horizon * 2)
             self.metrics["planning_seconds"] += retry.seconds
             self.metrics["plans"] += 1
             self.metrics["last_plan_ms"] = retry.seconds * 1000
             result = retry
+        if result.status != "success":
+            reserved = plan_reserved(self.warehouse,starts,routes,PLAN_SECONDS,horizon*2)
+            self.metrics["planning_seconds"] += reserved.seconds
+            self.metrics["plans"] += 1
+            self.metrics["last_plan_ms"] = reserved.seconds*1000
+            result = reserved
         if result.status != "success":
             self.paused = True
             self.failed_attempts += 1
@@ -244,6 +261,9 @@ class Simulation:
             return False
         for robot in self.robots:
             robot.path = result.paths[robot.id]
+        self.metrics["planner"] = result.method
+        if result.method == "reservations":
+            self.metrics["reservation_plans"] += 1
         self.dirty = False
         self.failed_attempts = 0
         if self.message.startswith(("重新规划中", "已安全暂停", "连续无执行进展")):
@@ -328,8 +348,11 @@ class Simulation:
         return True
 
     def assert_invariants(self):
+        count = self.warehouse.robot_count
+        if len(self.robots) != count or [r.id for r in self.robots] != list(range(1,count+1)):
+            raise AssertionError("Robot population or IDs disagree with scene configuration")
         positions = [r.position for r in self.robots]
-        if len(set(positions)) != 3:
+        if len(set(positions)) != len(self.robots):
             raise AssertionError("Robots overlap")
         current = [r.task_id for r in self.robots if r.task_id is not None]
         reserved = [r.next_task_id for r in self.robots if r.next_task_id is not None]

@@ -1,4 +1,4 @@
-"""Exact matching for three robot slots, using O(tasks * robots * 2**robots).
+"""Exact matching for configurable fleets, using O(tasks * robots * 2**robots).
 
 Lexicographic objective: maximize assigned priority-5 count, then priority-4,
 etc.; then minimize total ETA. Arrival order breaks equal-cost ties only.
@@ -27,12 +27,13 @@ def exact_matching(slots, tasks, cost):
     empty = (0,) * 7
     states = {0: (empty, {})}
     for task in sorted(tasks, key=lambda t: t.id):
+        estimates = [cost(slot, task) for slot in slots]
         following = dict(states)
         for mask, (score, pairs) in states.items():
             for index, slot in enumerate(slots):
                 if mask & (1 << index):
                     continue
-                eta = cost(slot, task)
+                eta = estimates[index]
                 if eta >= 10**6:
                     continue
                 updated = list(score)
@@ -46,4 +47,59 @@ def exact_matching(slots, tasks, cost):
         states = following
     score, pairs = min(states.values(), key=lambda item: item[0])
     return pairs, score
+
+
+def minimum_assignment(costs):
+    """Rectangular Hungarian algorithm: assign every row to a distinct column."""
+    n = len(costs)
+    if n == 0:
+        return []
+    m = len(costs[0])
+    if m < n or any(len(row) != m for row in costs):
+        raise ValueError("停车位不足或代价矩阵尺寸错误")
+    u, v, matched, previous = [0]*(n+1), [0]*(m+1), [0]*(m+1), [0]*(m+1)
+    for row in range(1, n+1):
+        matched[0] = row
+        column = 0
+        slack, used = [float("inf")]*(m+1), [False]*(m+1)
+        while True:
+            used[column] = True
+            current = matched[column]
+            delta, following = float("inf"), 0
+            for j in range(1, m+1):
+                if used[j]:
+                    continue
+                reduced = costs[current-1][j-1]-u[current]-v[j]
+                if reduced < slack[j]:
+                    slack[j], previous[j] = reduced, column
+                if slack[j] < delta:
+                    delta, following = slack[j], j
+            for j in range(m+1):
+                if used[j]:
+                    u[matched[j]] += delta; v[j] -= delta
+                else:
+                    slack[j] -= delta
+            column = following
+            if matched[column] == 0:
+                break
+        while column:
+            following = previous[column]
+            matched[column] = matched[following]
+            column = following
+    result = [0]*n
+    for j in range(1, m+1):
+        if matched[j]:
+            result[matched[j]-1] = j-1
+    return result
+
+
+def optimal_parking(warehouse, origins):
+    """Minimize total distance, then parking indices in robot order, exactly."""
+    parks = warehouse.parking
+    base = len(parks)+1
+    # The lower digits encode deterministic ties without changing distance optimality.
+    scale = base**len(origins)
+    costs = [[warehouse.distance(origin, park)*scale + j*base**(len(origins)-1-i)
+              for j, park in enumerate(parks)] for i, origin in enumerate(origins)]
+    return [parks[j] for j in minimum_assignment(costs)]
 

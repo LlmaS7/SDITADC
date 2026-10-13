@@ -8,7 +8,7 @@ from tempfile import TemporaryDirectory
 from time import monotonic, sleep
 import webbrowser
 
-from config import DEFAULT_SEED, OUTPUTS, VERSION
+from config import DEFAULT_SEED, DEFAULT_MAP, OUTPUTS, VERSION
 from controller import Controller
 from persistence import load, save, write_json
 from server import start_server
@@ -16,7 +16,7 @@ from simulation import Simulation
 
 
 def headless(args):
-    sim = load(Path(args.load)) if args.load else Simulation(args.seed)
+    sim = load(Path(args.load)) if args.load else Simulation(args.seed, map_id=args.map_id, robot_count=args.robots)
     if args.auto:
         sim.command("auto", enabled=True)
     for _ in range(args.ticks):
@@ -24,13 +24,14 @@ def headless(args):
             raise RuntimeError(sim.message)
     if not args.no_save:
         save(sim)
-    print(json.dumps({"tick": sim.tick, **sim.snapshot().metrics}, ensure_ascii=False, indent=2))
+    print(json.dumps({"tick": sim.tick, "robot_count": len(sim.robots), **sim.snapshot().metrics}, ensure_ascii=False, indent=2))
 
 
 def graphical(args):
     native = not (args.serve or args.browser)
     controller = Controller(args.seed, paused=args.paused or native, auto=args.auto,
-                            scenario=Path(args.load) if args.load else None)
+                            scenario=Path(args.load) if args.load else None, map_id=args.map_id,
+                            robot_count=args.robots)
     server, url = start_server(controller, args.port)
     controller.start()
     print(f"SDITADC v{VERSION}: {url}", flush=True)
@@ -54,7 +55,7 @@ def graphical(args):
                 if not value or not value.get("ready"):
                     return False
                 coordinates, canvas = value.get("positions", []), value.get("canvas2d", [])
-                same = len(coordinates) == len(canvas) == 3 and all(
+                same = len(coordinates) == len(canvas) == len(controller.sim.robots) and all(
                     abs(a["x"]-b["x"]) < 1e-6 and abs(a["y"]-b["y"]) < 1e-6
                     for a,b in zip(coordinates,canvas))
                 return bool(value.get("webgl2") and value.get("drawCalls",0)>0 and same
@@ -135,8 +136,10 @@ def graphical(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="SDITADC HTML + Three.js three-robot preview")
+    parser = argparse.ArgumentParser(description="SDITADC HTML + Three.js multi-robot preview")
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
+    parser.add_argument("--map", dest="map_id", default=DEFAULT_MAP, help="Map filename stem under maps/")
+    parser.add_argument("--robots", type=int, help="Robot count within the selected map's capacity")
     parser.add_argument("--headless", action="store_true")
     parser.add_argument("--ticks", type=int, default=1200)
     parser.add_argument("--auto", action="store_true")

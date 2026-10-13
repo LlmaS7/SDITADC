@@ -2,6 +2,8 @@ import { SimulationClient, focusMainWindow } from './client.js';
 
 const $=id=>document.getElementById(id);
 let state=null,mapKey='',transient='',transientUntil=0,seedTouched=false;
+let mapTouched=false;
+let countTouched=false,maps=new Map();
 const note=message=>{transient=message;transientUntil=performance.now()+4500;};
 const client=new SimulationClient({onState:accept,onStatus:controls,onError:note});
 const taskName=id=>id===null?'—':'T'+String(id).padStart(3,'0');
@@ -10,6 +12,8 @@ function controls() {
   if(!state) return;
   const busy=client.pending>0 || !client.connected;
   for(const id of ['pause','step','random','new-task','auto','save','load','retry','reset']) $(id).disabled=busy;
+  $('map-choice').disabled=busy;$('refresh-maps').disabled=busy;
+  $('robot-count').disabled=busy || !$('robot-count').options.length;
   $('speed').disabled=busy;$('pause').textContent=state.paused?'继续':'暂停';$('speed').value=String(state.speed);
   $('auto').textContent=state.auto?'自动生成：开':'自动生成：关';$('auto').setAttribute('aria-pressed',String(state.auto));
   $('connection').textContent=!client.connected?'连接中断':state.planning?'规划中':state.paused?'已暂停':'运行中';
@@ -18,7 +22,7 @@ function controls() {
 function accept(value,previous) {
   state=value;
   if(previous && value.generation!==previous.generation) {
-    $('task-dialog').close();seedTouched=false;
+    $('task-dialog').close();seedTouched=false;mapTouched=false;countTouched=false;
   }
   const key=state.generation+':'+state.map.seed;
   if(key!==mapKey) {
@@ -29,7 +33,17 @@ function accept(value,previous) {
   const m=state.metrics;
   const fields={tick:state.tick,seed:state.map.seed,'map-size':`${state.map.width} × ${state.map.height}`,generation:state.generation,revision:state.revision,'visible-total':m.visible_total,'record-total':m.total,replaying:state.replaying?'开':'关','plan-ms':`${m.last_plan_ms.toFixed(1)} ms`,'cbs-nodes':m.cbs_nodes,plans:m.plans,recoveries:m.recovery_attempts,distance:`${m.distance} 格`,waits:`${m.waits} 步`,'avg-completion':`${m.avg_completion.toFixed(1)} 步`,preemptions:`${m.preemptions} 次`};
   Object.entries(fields).forEach(([id,value])=>$(id).textContent=value);
+  $('planner').textContent=m.planner==='reservations'?'预约寻路（备用）':'CBS';
+  $('reservation-plans').textContent=m.reservation_plans;
   if(!seedTouched) $('reset-seed').value=state.map.seed;
+  $('map-name').textContent=state.map.name;
+  if(!mapTouched) {
+    const select=$('map-choice');
+    if(![...select.options].some(o=>o.value===state.map.id)) select.add(new Option(`${state.map.name}（当前记录）`,state.map.id));
+    select.value=state.map.id;
+  }
+  countOptions(!countTouched && !mapTouched ? state.robot_count : undefined);
+  $('fleet-size').textContent=`${state.robot_count} 台 / 上限 ${state.map.max_robots}`;
   $('assignment-note').textContent=`本轮预计完成时间和：${state.assignment.eta_sum ?? 0} 步。代价不含未来插单及路径冲突等待。`;
   $('robot-data').innerHTML=state.robots.map(r=>`<tr><td>R${r.id}</td><td>(${r.position})</td><td>${r.label}</td><td>${taskName(r.task_id)}</td><td>${taskName(r.next_task_id)}</td><td>${Math.max(0,r.path.length-1)}</td><td>${r.loaded?'是':'否'}</td></tr>`).join('');
   controls();
@@ -43,10 +57,42 @@ $('save').onclick=()=>client.command('save');
 $('load').onclick=()=>client.command('load');
 $('retry').onclick=()=>client.command('retry');
 $('reset-seed').oninput=()=>seedTouched=true;
+$('robot-count').onchange=()=>countTouched=true;
+function countOptions(requested) {
+  const id=$('map-choice').value;
+  const definition=maps.get(id) || (id===state?.map.id?state.map:null);
+  const max=definition?.max_robots || 0,input=$('robot-count');
+  const current=requested ?? (input.value?Number(input.value):definition?.default_robots || 3);
+  if(input.options.length!==max) input.replaceChildren(...Array.from({length:max},(_,i)=>new Option(`${i+1} 台`,i+1)));
+  if(max) input.value=String(Math.max(1,Math.min(max,current)));
+  $('robot-limit').textContent=max?`本地图上限：${max} 台`:'请选择有效地图';
+}
+$('map-choice').onchange=()=>{mapTouched=true;countTouched=true;countOptions();};
+async function refreshMaps() {
+  try {
+    const response=await fetch('/api/maps',{cache:'no-store'});
+    if(!response.ok) throw new Error('无法读取地图列表');
+    const responseMaps=(await response.json()).maps,select=$('map-choice'),value=select.value;
+    maps=new Map(responseMaps.map(m=>[m.id,m]));
+    select.replaceChildren(...responseMaps.map(m=>{
+      const option=new Option(m.available?`${m.name} · ${m.width}×${m.height}`:`${m.name} · 格式错误`,m.id);
+      option.disabled=!m.available;option.title=m.error || '';return option;
+    }));
+    if([...select.options].some(o=>o.value===(mapTouched?value:state?.map.id))) select.value=mapTouched?value:state.map.id;
+    const errors=responseMaps.filter(m=>!m.available);
+    $('map-errors').textContent=errors.map(m=>`${m.id}：${m.error}`).join('；');
+    $('map-errors').hidden=!errors.length;
+    countOptions();controls();
+  } catch(e) {note(e.message);}
+}
+$('refresh-maps').onclick=refreshMaps;
 $('reset').onclick=()=>{
   const input=$('reset-seed');
   if(!input.checkValidity() || input.value==='') {input.reportValidity();note('请输入合法的地图种子');return;}
-  client.command('reset',{seed:Number(input.value)});
+  if(!$('map-choice').value) {note('请先选择有效地图');return;}
+  const count=Number($('robot-count').value);
+  if(!Number.isInteger(count) || count<1) {note('请选择机器人数量');return;}
+  client.command('reset',{seed:Number(input.value),map_id:$('map-choice').value,robot_count:count});
 };
 $('focus-main').onclick=async()=>{try{await focusMainWindow();}catch(e){note(e.message);}};
 $('new-task').onclick=async()=>{if(await client.command('pause',{paused:true})) $('task-dialog').showModal();};
@@ -59,5 +105,5 @@ document.addEventListener('keydown',e=>{
   else if(actions[e.key.toLowerCase()]) $(actions[e.key.toLowerCase()]).click();
 });
 setInterval(()=>{if(state) $('status-message').textContent=performance.now()<transientUntil?transient:!client.connected?'连接中断，等待恢复':state.message;},120);
-window.debugInspect=()=>({ready:!!state,tick:state?.tick,seed:state?.map.seed,generation:state?.generation,revision:state?.revision,paused:state?.paused,auto:state?.auto,taskIds:state?.tasks.map(t=>t.id) || []});
-client.poll();
+window.debugInspect=()=>({ready:!!state,tick:state?.tick,seed:state?.map.seed,robotCount:state?.robot_count,mapId:state?.map.id,maxRobots:state?.map.max_robots,generation:state?.generation,revision:state?.revision,paused:state?.paused,auto:state?.auto,taskIds:state?.tasks.map(t=>t.id) || []});
+client.poll();refreshMaps();

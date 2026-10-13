@@ -1,44 +1,65 @@
 """Reproducible shelves, static clutter, service bays and off-aisle parking."""
 from collections import deque
+from copy import deepcopy
 from random import Random
-from config import WIDTH, HEIGHT
+from config import DEFAULT_MAP
+from map_format import load_map, validate_map, robot_limits, integer
 from models import Position
 
 
 class Warehouse:
-    def __init__(self, seed: int):
+    def __init__(self, seed: int, map_id=DEFAULT_MAP, definition=None, robot_count=None):
         self.seed = seed
-        self.width, self.height = WIDTH, HEIGHT
-        self.shelves: set[Position] = set()
-        self.obstacles: set[Position] = set()
-        self.parking = [(2, 2), (3, 2), (4, 2), (29, 2), (2, 21), (29, 21)]
-        self.starts = self.parking[:3]
-        self.pickups: list[Position] = []
-        self.deliveries = [(9, 21), (15, 21), (21, 21), (26, 21)]
-        # Four rows of five solid shelves, with two-cell cross aisles.
-        for y in (5, 9, 13, 17):
-            for x in (4, 9, 14, 19, 24):
-                self.shelves.update((sx, sy) for sx in range(x, x + 3)
-                                    for sy in range(y, y + 2))
-                self.pickups.append((x + 1, y - 1))
-        self.blocked = {(x, y) for y in range(HEIGHT) for x in range(WIDTH)
-                        if x in (0, WIDTH - 1) or y in (0, HEIGHT - 1)} | self.shelves
+        self.map_id = map_id
+        self.definition = validate_map(definition) if definition is not None else load_map(map_id)
+        self.name = self.definition["name"]
+        grid = self.definition["grid"]
+        self.width, self.height = grid["width"], grid["height"]
+        cells = [(x, y, c) for y, row in enumerate(grid["rows"]) for x, c in enumerate(row)]
+        self.walls = {(x, y) for x, y, c in cells if c == "#"}
+        self.shelves: set[Position] = {(x, y) for x, y, c in cells if c == "R"}
+        self.obstacles: set[Position] = {(x, y) for x, y, c in cells if c == "O"}
+        points = self.definition["points"]
+        for group in ("parking", "starts", "pickups", "deliveries"):
+            setattr(self, group, [tuple(p) for p in points[group]])
+        self.default_robots, self.max_robots = robot_limits(self.definition)
+        self.robot_count = integer(self.default_robots if robot_count is None else robot_count,
+                                   "机器人数量", 1, self.max_robots)
+        self.start_pool = self.starts
+        self.starts = self.start_pool[:self.robot_count]
+        self.blocked = self.walls | self.shelves | self.obstacles
         # Protect endpoints and their immediate approaches.
         protected = set(self.parking + self.pickups + self.deliveries)
         protected |= {q for p in list(protected) for q in self.adjacent(p)}
-        candidates = [(x, y) for y in range(3, 21) for x in range(2, 30)
-                      if (x, y) not in self.blocked | protected]
+        clutter = self.definition.get("random_obstacles", {})
+        count = clutter.get("count", 0)
+        left, top, right, bottom = clutter.get("region", [0, 0, self.width, self.height])
+        excluded = self.blocked | protected
+        candidates = [(x, y) for y in range(top, bottom) for x in range(left, right)
+                      if (x, y) not in excluded] if count else []
         rng = Random(seed)
         rng.shuffle(candidates)
+        self.random_count = 0
         for p in candidates:
-            if len(self.obstacles) >= 20:
+            if self.random_count >= count:
                 break
             self.blocked.add(p)
-            if len(self.reachable(self.starts[0])) == WIDTH * HEIGHT - len(self.blocked):
+            if len(self.reachable(self.starts[0])) == self.width * self.height - len(self.blocked):
                 self.obstacles.add(p)
+                self.random_count += 1
             else:
                 self.blocked.remove(p)
         self._distances: dict[Position, dict[Position, int]] = {}
+
+    def export_map(self):
+        """Freeze the realized geometry, including seeded clutter, for durable replay."""
+        result = deepcopy(self.definition)
+        rows = [list(row) for row in result["grid"]["rows"]]
+        for x, y in self.obstacles:
+            rows[y][x] = "O"
+        result["grid"]["rows"] = ["".join(row) for row in rows]
+        result["random_obstacles"] = {"count": 0}
+        return result
 
     @staticmethod
     def adjacent(p):

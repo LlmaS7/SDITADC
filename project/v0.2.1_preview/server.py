@@ -7,6 +7,7 @@ from urllib.parse import unquote, urlsplit
 import json
 import mimetypes
 from config import FRONTEND
+from map_format import catalog
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -35,6 +36,9 @@ class Handler(BaseHTTPRequestHandler):
         path = unquote(urlsplit(self.path).path)
         if path == "/api/state":
             self.send(200, self.controller.state())
+            return
+        if path == "/api/maps":
+            self.send(200, {"maps": catalog()})
             return
         if path == "/api/health":
             self.send(200, {"ok": True, "version": self.controller.state()["version"]})

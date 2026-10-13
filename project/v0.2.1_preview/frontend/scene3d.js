@@ -1,7 +1,26 @@
 import * as THREE from 'three';
 import { OrbitControls } from './vendor/OrbitControls.js';
+import { robotColor } from './robot-colors.js';
 
-const palette = [0x43adf5, 0xffb154, 0x6bcea7];
+// Merge only filled rectangles, preserving holes and irregular obstacle shapes.
+function rectangles(points) {
+  const rows=new Map();
+  for(const [x,y] of points) {if(!rows.has(y)) rows.set(y,[]);rows.get(y).push(x);}
+  const result=[];let active=new Map(),previous=-2;
+  for(const y of [...rows.keys()].sort((a,b)=>a-b)) {
+    const xs=rows.get(y).sort((a,b)=>a-b),runs=[];
+    for(let i=0;i<xs.length;) {const x=xs[i++];let width=1;while(i<xs.length && xs[i]===x+width) {i++;width++;}runs.push([x,width]);}
+    if(y!==previous+1) active.clear();
+    const next=new Map();
+    for(const [x,width] of runs) {
+      const key=x+':'+width,rectangle=active.get(key);
+      if(rectangle) rectangle.depth++;else result.push({x,y,width,depth:1});
+      next.set(key,rectangle || result.at(-1));
+    }
+    active=next;previous=y;
+  }
+  return result;
+}
 
 function label(text, color='#214253', background='#e6f2f6') {
   const canvas=document.createElement('canvas'); canvas.width=160; canvas.height=80;
@@ -62,16 +81,34 @@ export class Scene3D {
     const {width,height}=this.map;
     const damping=this.controls.enableDamping;
     this.controls.enableDamping=false; this.controls.update(); this.controls.enableDamping=damping;
-    this.camera.position.set(width*1.06,37,height*1.52);
     this.controls.target.set(width/2,0,height/2);
-    // Fit the full footprint in this panel, including its near corner.
-    for(let attempt=0;attempt<10;attempt++) {
-      this.camera.lookAt(this.controls.target); this.camera.updateMatrixWorld();
-      const corners=[[0,0],[width,0],[0,height],[width,height]].map(([x,z])=>new THREE.Vector3(x,0,z).project(this.camera));
-      if(corners.every(p=>Math.abs(p.x)<.91 && Math.abs(p.y)<.88)) break;
-      this.camera.position.sub(this.controls.target).multiplyScalar(1.08).add(this.controls.target);
+    const radius=Math.hypot(width,height)/2;
+    let distance=radius*1.1;
+    this.controls.minDistance=Math.max(4,Math.min(width,height)*.3);
+    const direction=new THREE.Vector3(.8,1,1.2).normalize();
+    this.camera.far=radius*100;this.camera.updateProjectionMatrix();
+    // Fit the actual rectangular footprint, rather than its larger bounding sphere.
+    for(let attempt=0;attempt<50;attempt++) {
+      this.camera.position.copy(this.controls.target).addScaledVector(direction,distance);
+      this.camera.lookAt(this.controls.target);this.camera.updateMatrixWorld();
+      const corners=[[0,0],[width,0],[0,height],[width,height]].map(([x,z])=>new THREE.Vector3(x,1.8,z).project(this.camera));
+      if(corners.every(p=>Math.abs(p.x)<.91 && Math.abs(p.y)<.86 && p.z>-1 && p.z<1)) break;
+      distance*=1.08;
     }
+    this.controls.maxDistance=distance*3;
+    this.camera.far=distance*5;this.camera.updateProjectionMatrix();
+    this.scene.fog.near=distance*2;this.scene.fog.far=distance*4;
     this.controls.update();
+  }
+  boxes(rects, height, elevation, color, inset=0) {
+    if(!rects.length) return;
+    const mesh=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshStandardMaterial({color,roughness:.78,metalness:.12}),rects.length);
+    const transform=new THREE.Object3D();
+    rects.forEach((r,i)=>{
+      transform.position.set(r.x+r.width/2,elevation,r.y+r.depth/2);
+      transform.scale.set(r.width-inset,height,r.depth-inset);transform.updateMatrix();mesh.setMatrixAt(i,transform.matrix);
+    });
+    mesh.computeBoundingSphere();this.warehouse.add(mesh);
   }
   box(width,height,depth,color,x,y,z,group=this.warehouse) {
     const mesh=new THREE.Mesh(new THREE.BoxGeometry(width,height,depth),
@@ -84,6 +121,8 @@ export class Scene3D {
     dispose(this.warehouse); dispose(this.highlights); this.highlightKey=null;
     for (const path of this.paths.values()) { this.scene.remove(path); path.geometry.dispose(); path.material.dispose(); }
     this.paths.clear();
+    for(const robot of this.robots.values()) {this.scene.remove(robot.group);dispose(robot.group);}
+    this.robots.clear();
     const {width,height}=map;
     const floor=new THREE.Mesh(new THREE.PlaneGeometry(width,height),new THREE.MeshStandardMaterial({color:0xd8e3e8,roughness:1}));
     floor.rotation.x=-Math.PI/2; floor.position.set(width/2,0,height/2); this.warehouse.add(floor);
@@ -92,27 +131,12 @@ export class Scene3D {
     for(let z=0;z<=height;z++) coords.push(0,.012,z,width,.012,z);
     const grid=new THREE.BufferGeometry(); grid.setAttribute('position',new THREE.Float32BufferAttribute(coords,3));
     this.warehouse.add(new THREE.LineSegments(grid,new THREE.LineBasicMaterial({color:0x7f99aa,transparent:true,opacity:.32})));
-    this.box(width,.38,1,0x466072,width/2,.19,.5);
-    this.box(width,.38,1,0x466072,width/2,.19,height-.5);
-    this.box(1,.38,height-2,0x466072,.5,.19,height/2);
-    this.box(1,.38,height-2,0x466072,width-.5,.19,height/2);
-    // Merge each connected rack footprint; no external 3D models are needed.
-    const remaining=new Map(map.shelves.map(p=>[p.join(','),p]));
-    while(remaining.size) {
-      const first=remaining.values().next().value; const queue=[first], cells=[]; remaining.delete(first.join(','));
-      while(queue.length) {
-        const p=queue.pop(); cells.push(p);
-        for(const q of [[p[0]+1,p[1]],[p[0]-1,p[1]],[p[0],p[1]+1],[p[0],p[1]-1]]) {
-          if(remaining.has(q.join(','))) { remaining.delete(q.join(',')); queue.push(q); }
-        }
-      }
-      const xs=cells.map(p=>p[0]), zs=cells.map(p=>p[1]);
-      const x=Math.min(...xs), z=Math.min(...zs), w=Math.max(...xs)-x+1, d=Math.max(...zs)-z+1;
-      this.box(w-.14,1.55,d-.14,0x637d90,x+w/2,.775,z+d/2);
-      for(const y of [.38,.85,1.35]) this.box(w-.08,.055,d-.08,0x8fa9b8,x+w/2,y,z+d/2);
-      this.box(w-.22,.16,d-.22,0x516b7c,x+w/2,1.63,z+d/2);
-    }
-    map.obstacles.forEach(([x,z])=>this.box(.8,.62,.8,0xad8e65,x+.5,.31,z+.5));
+    this.boxes(rectangles(map.walls),.38,.19,0x466072);
+    const racks=rectangles(map.shelves);
+    this.boxes(racks,1.55,.775,0x637d90,.14);
+    for(const y of [.38,.85,1.35]) this.boxes(racks,.055,y,0x8fa9b8,.08);
+    this.boxes(racks,.16,1.63,0x516b7c,.22);
+    this.boxes(map.obstacles.map(([x,y])=>({x,y,width:1,depth:1})),.62,.31,0xad8e65,.2);
     for(const [points,color,prefix] of [[map.pickups,0x8dc9de,''],[map.deliveries,0x86cda8,'D'],[map.parking,0xaaa6d1,'P']]) {
       points.forEach(([x,z],index)=>{
         this.box(.85,.025,.85,color,x+.5,.025,z+.5);
@@ -124,7 +148,7 @@ export class Scene3D {
   }
   robot(id) {
     if(this.robots.has(id)) return this.robots.get(id);
-    const g=new THREE.Group(), color=palette[id-1];
+    const g=new THREE.Group(), color=robotColor(id);
     this.box(.7,.26,.88,color,0,.29,0,g);
     this.box(.52,.13,.62,0x354a5a,0,.48,0,g);
     for(const x of [-.36,.36]) for(const z of [-.28,.28]) this.box(.13,.18,.24,0x273843,x,.16,z,g);
@@ -141,7 +165,7 @@ export class Scene3D {
       const old=this.paths.get(r.id); if(old) { this.scene.remove(old); old.geometry.dispose(); old.material.dispose(); }
       if(r.path.length>1) {
         const points=r.path.map(([x,z])=>new THREE.Vector3(x+.5,.075,z+.5));
-        const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineBasicMaterial({color:palette[r.id-1],transparent:true,opacity:.85}));
+        const line=new THREE.Line(new THREE.BufferGeometry().setFromPoints(points),new THREE.LineBasicMaterial({color:robotColor(r.id),transparent:true,opacity:.85}));
         this.scene.add(line); this.paths.set(r.id,line);
       } else this.paths.delete(r.id);
     }

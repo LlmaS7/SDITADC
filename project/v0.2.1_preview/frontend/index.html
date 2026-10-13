@@ -9,7 +9,7 @@
 </head>
 <body class="main-page">
   <header class="topbar">
-    <div class="brand"><span class="brand-mark">S</span><div><h1>三机仓库协作</h1><p>SDITADC · 仓库运行总览</p></div></div>
+    <div class="brand"><span class="brand-mark">S</span><div><h1>多机仓库协作</h1><p>SDITADC · 仓库运行总览</p></div></div>
     <div class="header-stats"><span id="connection" class="badge">正在连接</span><span>已完成 <strong id="overview-completed">0</strong></span><span>执行中 <strong id="overview-running">0</strong></span><span>待处理 <strong id="overview-pending">0</strong></span></div>
   </header>
   <nav class="toolbar" aria-label="仿真控制">
@@ -22,10 +22,10 @@
     <section class="visuals" aria-label="同步仓库预览">
       <article class="panel scene-panel">
         <div class="panel-title"><div><span class="eyebrow">空间视图</span><h2>3D 仓库预览</h2></div><div class="panel-tools"><span class="hint">拖动旋转 · 滚轮缩放</span><button id="recenter" class="small">恢复视角</button></div></div>
-        <div id="scene3d" class="scene"><div id="scene-error" class="scene-message" hidden></div><div class="scene-legend"><i class="dot blue"></i> R1 <i class="dot orange"></i> R2 <i class="dot green"></i> R3 <span>货架 · 作业点 · 路线</span></div></div>
+        <div id="scene3d" class="scene"><div id="scene-error" class="scene-message" hidden></div><div id="robot-legend" class="scene-legend"></div></div>
       </article>
       <article class="panel map-panel">
-        <div class="panel-title"><div><span class="eyebrow">俯视视图</span><h2>2D 路径预览</h2></div><span class="hint">机器人当前位置与行进路线</span></div>
+        <div class="panel-title"><div><span class="eyebrow">俯视视图</span><h2>2D 路径预览</h2></div><div class="panel-tools"><span class="hint">拖动平移 · 滚轮缩放</span><button id="recenter-2d" class="small">恢复视图</button></div></div>
         <div class="map-body"><div class="map-canvas-wrap"><canvas id="map2d" aria-label="仓库二维地图"></canvas></div><aside class="robot-strip"><div class="legend-text"><span>取货点</span><span>配送点</span><span>停车位</span></div><div id="robots"></div><p class="subtle map-tip">点击右侧任务，查看其取送位置。机器人上方的小货箱表示已载货。</p></aside></div>
       </article>
     </section>
@@ -36,7 +36,7 @@
       <section class="task-detail" aria-label="选中任务详情"><div class="detail-heading"><h3 id="detail-title">选择一个任务</h3><button id="clear-selection" class="text-button" title="清除位置高亮">清除高亮</button></div><p id="detail-route">点击任务查看其取送位置</p><p id="detail-note" class="subtle"></p><div class="task-actions"><button id="raise" disabled>提升一级</button><button id="urgent" class="danger" disabled>设为紧急</button><button id="cancel" disabled>取消任务</button></div></section>
     </aside>
   </main>
-  <footer class="statusbar"><span id="status-message">正在初始化仓库…</span><span>三台机器人 · 单件搬运</span></footer>
+  <footer class="statusbar"><span id="status-message">正在初始化仓库…</span><span id="fleet-summary">机器人 · 单件搬运</span></footer>
   <script type="module" src="./app.js"></script>
 </body>
 </html>

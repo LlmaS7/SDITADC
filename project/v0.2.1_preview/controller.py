@@ -10,16 +10,17 @@ from threading import Event, Lock, Thread
 from time import monotonic
 import traceback
 
-from config import DEFAULT_SEED, OUTPUTS, VERSION, WAIT_WARNING
+from config import DEFAULT_SEED, DEFAULT_MAP, OUTPUTS, VERSION, WAIT_WARNING, MAX_ROBOTS
 from models import TASK_LABELS, ROBOT_LABELS
 from persistence import load, save
 from simulation import Simulation
 
 
 class Controller:
-    def __init__(self, seed=DEFAULT_SEED, paused=False, auto=False, scenario=None):
-        self.seed = seed
-        self.sim = load(scenario) if scenario else Simulation(seed)
+    def __init__(self, seed=DEFAULT_SEED, paused=False, auto=False, scenario=None,
+                 map_id=DEFAULT_MAP, robot_count=None):
+        self.sim = load(scenario) if scenario else Simulation(seed, map_id=map_id, robot_count=robot_count)
+        self.seed = self.sim.warehouse.seed
         self.sim.paused = paused
         if auto:
             self.sim.command("auto", enabled=True)
@@ -39,7 +40,9 @@ class Controller:
 
     def _serialize_map(self):
         w = self.sim.warehouse
-        return {"seed": w.seed, "width": w.width, "height": w.height,
+        return {"id": w.map_id, "name": w.name, "seed": w.seed, "width": w.width, "height": w.height,
+                "walls": sorted(w.walls), "starts": w.starts, "random_count": w.random_count,
+                "start_pool": w.start_pool, "max_robots": w.max_robots, "default_robots": w.default_robots,
                 "shelves": sorted(w.shelves), "obstacles": sorted(w.obstacles),
                 "blocked": sorted(w.blocked), "pickups": w.pickups,
                 "deliveries": w.deliveries, "parking": w.parking}
@@ -67,7 +70,7 @@ class Controller:
                 "revision": self.revision, "tick": view.tick, "speed": self.speed,
                 "paused": view.paused, "planning": self._planning, "auto": view.auto,
                 "message": view.message, "replaying": view.replaying,
-                "map": self._map, "robots": robots, "tasks": tasks,
+                "map": self._map, "robots": robots, "robot_count": len(robots), "tasks": tasks,
                 "metrics": {**view.metrics, "visible_total": len(tasks)},
                 "assignment": view.assignment, "wait_warning": WAIT_WARNING}
         with self._lock:
@@ -156,9 +159,13 @@ class Controller:
             self.sim.message = "已保存场景和运行报告到本版本 outputs/"
         elif op in ("reset", "load"):
             if op == "reset":
-                self.seed = self.integer(data, "seed", 0, 2**31 - 1) if "seed" in data else self.seed
-                self.sim = Simulation(self.seed)
-                self.sim.message = "已重置普通场景，点击继续开始"
+                seed = self.integer(data, "seed", 0, 2**31 - 1) if "seed" in data else self.seed
+                map_id = data.get("map_id", self.sim.warehouse.map_id)
+                count = self.integer(data, "robot_count", 1, MAX_ROBOTS) if "robot_count" in data else len(self.sim.robots)
+                replacement = Simulation(seed, map_id=map_id, robot_count=count)
+                self.sim = replacement
+                self.seed = seed
+                self.sim.message = f"已应用{self.sim.warehouse.name} · {len(self.sim.robots)} 台机器人，点击继续开始"
             else:
                 self.sim = load()
                 self.seed = self.sim.warehouse.seed
