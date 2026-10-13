@@ -38,15 +38,39 @@ def graphical(args):
         if args.serve or args.browser:
             if args.browser:
                 webbrowser.open(url)
+                if args.debug_window:
+                    webbrowser.open_new(url + "debug.html")
             while True:
                 sleep(.25)
         else:
             import webview
+            from desktop import DesktopWindows
             smoke = args.smoke_test
-            window = webview.create_window("SDITADC · v0.2_preview · 三机仓库协作",
-                                           url, width=1460, height=940, min_size=(1080, 720),
-                                           hidden=smoke, maximized=not smoke, background_color="#101820")
+            windows = DesktopWindows(url, hidden=smoke)
+            window = windows._main
             result = {"ok": False}
+
+            def valid_main(value):
+                if not value or not value.get("ready"):
+                    return False
+                coordinates, canvas = value.get("positions", []), value.get("canvas2d", [])
+                same = len(coordinates) == len(canvas) == 3 and all(
+                    abs(a["x"]-b["x"]) < 1e-6 and abs(a["y"]-b["y"]) < 1e-6
+                    for a,b in zip(coordinates,canvas))
+                return bool(value.get("webgl2") and value.get("drawCalls",0)>0 and same
+                            and all(t is not None and int(t)==value["tick"] for t in value.get("viewTicks",[])))
+
+            def wait_pair(tick, task_count):
+                deadline = monotonic()+15
+                while monotonic()<deadline:
+                    if windows._debug is not None:
+                        primary = window.evaluate_js("window.previewDebug ? window.previewDebug.inspect() : null")
+                        secondary = windows._debug.evaluate_js("window.debugInspect ? window.debugInspect() : null")
+                        if valid_main(primary) and secondary and secondary.get("ready"):
+                            if primary["tick"] == secondary["tick"] == tick and primary["taskIds"] == secondary["taskIds"] and len(primary["taskIds"]) == task_count:
+                                return primary,secondary
+                    sleep(.12)
+                raise RuntimeError("两个窗口的状态未同步")
 
             def inspect_window():
                 deadline = monotonic() + 35
@@ -54,21 +78,43 @@ def graphical(args):
                     while monotonic() < deadline:
                         try:
                             value = window.evaluate_js("window.previewDebug ? window.previewDebug.inspect() : null")
-                            if value and value.get("ready") and all(t is not None for t in value.get("viewTicks", [])):
+                            if value and value.get("ready"):
                                 result.update(value)
-                                coordinates = value.get("positions", [])
-                                canvas = value.get("canvas2d", [])
-                                same_positions = len(coordinates) == len(canvas) == 3 and all(
-                                    abs(a["x"] - b["x"]) < 1e-6 and abs(a["y"] - b["y"]) < 1e-6
-                                    for a, b in zip(coordinates, canvas))
-                                result["ok"] = bool(value.get("webgl2") and value.get("robotCount") == 3
-                                                    and value.get("drawCalls", 0) > 0 and same_positions
-                                                    and all(int(t) == value["tick"] for t in value["viewTicks"]))
+                                if smoke:
+                                    bridge = window.evaluate_js("Boolean(window.pywebview?.api?.open_debug)")
+                                    if not valid_main(value) or not bridge:
+                                        sleep(.12)
+                                        continue
+                                    result["pair_check_started"] = True
+                                    window.evaluate_js("document.querySelector('#debug-window').click(); true")
+                                    first, debug = wait_pair(0,9)
+                                    result["main"] = first
+                                    result["debug"] = debug
+                                    result["two_windows"] = True
+                                    controller.submit("random").result(timeout=10)
+                                    wait_pair(0,10)
+                                    controller.submit("step").result(timeout=10)
+                                    wait_pair(1,10)
+                                    result["shared_commands"] = True
+                                    windows._debug.destroy()
+                                    close_deadline = monotonic()+5
+                                    while windows._debug is not None and monotonic()<close_deadline:
+                                        sleep(.1)
+                                    if windows._debug is not None:
+                                        raise RuntimeError("关闭调试窗口未释放窗口引用")
+                                    windows.open_debug()
+                                    wait_pair(1,10)
+                                    result["reopen_preserves_state"] = True
+                                    result["ok"] = True
+                                elif args.debug_window:
+                                    windows.open_debug()
                                 if not smoke and not args.paused:
                                     controller.submit("pause", {"paused": False}).result(timeout=10)
                                 break
-                        except Exception:
-                            pass
+                        except Exception as exc:
+                            if smoke and result.get("pair_check_started"):
+                                result["error"] = str(exc)
+                                break
                         sleep(.15)
                 finally:
                     if smoke:
@@ -78,7 +124,7 @@ def graphical(args):
             with TemporaryDirectory(prefix="sditadc-webview-", ignore_cleanup_errors=True) as profile:
                 webview.start(inspect_window, gui="edgechromium", debug=args.debug,
                               private_mode=True, storage_path=profile)
-            if smoke and not result["ok"]:
+            if smoke and not (result["ok"] and result.get("shared_commands") and result.get("reopen_preserves_state")):
                 raise RuntimeError(f"独立窗口渲染检查未通过：{result}")
     except KeyboardInterrupt:
         pass
@@ -100,6 +146,7 @@ def main():
     parser.add_argument("--serve", action="store_true", help="Serve locally without opening a window")
     parser.add_argument("--port", type=int, default=0, help="0 selects a free local port")
     parser.add_argument("--debug", action="store_true")
+    parser.add_argument("--debug-window", action="store_true", help="Open the separate control/debug window on startup")
     parser.add_argument("--smoke-test", action="store_true", help="Check hidden native WebView2 rendering")
     parser.add_argument("--no-save", action="store_true", help="Do not overwrite saved runs on exit")
     args = parser.parse_args()

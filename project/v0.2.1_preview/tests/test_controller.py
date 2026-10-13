@@ -70,6 +70,13 @@ class ControllerTests(unittest.TestCase):
             self.assertIn('id="scene3d"', html)
             self.assertIn('id="map2d"', html)
             self.assertIn('id="tasks"', html)
+            for name in ("random", "new-task", "auto", "save", "load", "tick", "seed", "step"):
+                self.assertNotIn(f'id="{name}"',html)
+            debug = urlopen(url + "debug.html").read().decode()
+            for name in ("random", "new-task", "auto", "save", "load", "tick", "seed", "step"):
+                self.assertIn(f'id="{name}"',debug)
+            self.assertNotIn('id="scene3d"',debug)
+            self.assertNotIn('id="map2d"',debug)
             with urlopen(url + "vendor/three.module.js") as response:
                 self.assertTrue(response.headers["Content-Type"].startswith("text/javascript"))
             request = Request(url + "api/command", data=b'{"operation":"step"}', headers={"Content-Type":"application/json"})
@@ -79,6 +86,21 @@ class ControllerTests(unittest.TestCase):
                 urlopen(url + "../config.py")
             self.assertEqual(caught.exception.code, 404)
             caught.exception.close()
+        finally:
+            server.shutdown()
+            server.server_close()
+
+    def test_shared_page_commands_do_not_create_another_simulation(self):
+        server,url = start_server(self.controller)
+        try:
+            # Visiting the debug page does not construct or reset a simulator.
+            urlopen(url+"debug.html").close()
+            request = Request(url+"api/command",data=b'{"operation":"random"}',headers={"Content-Type":"application/json"})
+            result = json.loads(urlopen(request).read())
+            main_state = json.loads(urlopen(url+"api/state").read())
+            self.assertEqual(result["state"]["tasks"],main_state["tasks"])
+            self.assertEqual(len(main_state["tasks"]),10)
+            self.assertEqual(main_state["tick"],0)
         finally:
             server.shutdown()
             server.server_close()

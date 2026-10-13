@@ -4,7 +4,7 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent
 OUTPUTS = ROOT / "outputs"
 FRONTEND = ROOT / "frontend"
-VERSION = "0.2_preview"
+VERSION = "0.2.1_preview"
 WIDTH, HEIGHT = 32, 24
 DEFAULT_SEED = 20261010
 LOAD_TICKS = UNLOAD_TICKS = 2

@@ -32,7 +32,7 @@ def load(path=None):
     if not path.exists():
         path = ROOT / "scenarios" / "ordinary.json"
     data = json.loads(path.read_text(encoding="utf-8"))
-    if data.get("version") not in ("0.1_preview", VERSION):
+    if data.get("version") not in ("0.1_preview", "0.2_preview", VERSION):
         raise ValueError("场景版本不匹配")
     sim = Simulation(int(data["seed"]), initial_tasks=0)
     events = data.get("events", [])

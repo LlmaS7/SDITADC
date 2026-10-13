@@ -119,3 +119,33 @@ dialog label select{width:230px}
 .metrics{padding:9px 12px;gap:8px}
 }
 
+.main-page .task-card{padding:12px;margin-bottom:9px}
+.main-page .task-panel{min-height:0}
+.main-page .task-list{min-height:0}
+.main-page .task-detail{padding:16px}
+.main-page .header-stats strong{font-size:20px}
+.debug-page{min-width:620px;height:auto;min-height:100vh}
+.debug-page .topbar{height:78px}
+.debug-page .brand h1{font-size:20px}
+.debug-mark{background:#b9c7db;color:#263e5a}
+.debug-workspace{display:grid;gap:15px;padding:18px 22px 24px}
+.debug-section .panel-title{padding:14px 17px}
+.debug-controls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px;padding:0 17px 15px}
+.debug-controls .speed-label{justify-content:center}
+.debug-reset{display:flex;align-items:center;gap:12px;padding:0 17px 17px;color:var(--muted);font-size:12px}
+input{font:inherit;border:1px solid var(--line);border-radius:6px;background:#243441;color:var(--text);padding:8px 10px;min-width:0}
+.debug-reset input{flex:1;width:130px}
+.debug-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;padding:0 17px 17px}
+.debug-grid>div{background:#1f2e3c;border-radius:7px;padding:10px 12px;display:flex;flex-direction:column;gap:7px}
+.debug-grid span{font-size:11px;color:var(--muted)}
+.debug-grid strong{font:16px Consolas,monospace;color:var(--text)}
+.debug-note{padding:0 17px 15px;font-size:12px;line-height:1.7;overflow-wrap:anywhere}
+.debug-table-wrap{overflow-x:auto;padding:0 17px 17px}
+.debug-table{width:100%;border-collapse:collapse;font-size:11px;white-space:nowrap}
+.debug-table th,.debug-table td{text-align:left;padding:10px 8px;border-bottom:1px solid var(--line)}
+.debug-table th{color:var(--muted);font-weight:400}
+.debug-page dialog form>label{display:block;margin:16px 0 7px}
+.debug-page dialog form>select{width:100%;margin-bottom:2px}
+.debug-page dialog .subtle{margin-top:14px}
+@media(max-width:760px){.debug-page .topbar{padding:0 16px}.debug-page .header-stats{gap:10px}.debug-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.debug-workspace{padding:14px}.debug-controls button{font-size:12px}}
+
