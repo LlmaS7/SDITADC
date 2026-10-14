@@ -6,6 +6,7 @@ from pathlib import Path
 import re
 
 from config import MAPS, DEFAULT_MAP, DEFAULT_ROBOT_COUNT, MAX_ROBOTS
+from locations import build_locations
 
 FORMAT = "sditadc-map"
 MAX_DIMENSION = 256
@@ -104,6 +105,7 @@ def validate_map(value):
         integer(v, f"region.{label}", 0, limit)
     if region[0] >= region[2] or region[1] >= region[3]:
         raise ValueError("随机障碍 region 范围为空")
+    build_locations(value)
     return deepcopy(value)
 
 

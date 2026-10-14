@@ -190,6 +190,7 @@ textarea:focus,input:focus{outline:1px solid var(--accent);border-color:var(--ac
 #settings-dialog{width:min(560px,calc(100vw - 40px));max-height:90vh;overflow:auto;padding:23px}
 #settings-form>label{display:block;margin:16px 0 7px}
 #settings-form>input,#settings-form>select{width:100%}
+#settings-key[data-configured="true"]::placeholder{color:var(--text);opacity:1}
 #settings-form .remember-label{display:flex;align-items:center;justify-content:flex-start;gap:8px;font-size:12px}
 #settings-form .remember-label input{width:auto}
 .model-row{display:flex;gap:8px}.model-row input{flex:1;min-width:0}

@@ -36,6 +36,7 @@ export class Chat {
       if(e.result.error){const p=document.createElement('p');p.className='result-error';p.textContent=e.result.error;row.results.append(p);}
       for(const item of e.result.actions||[]){const card=document.createElement('div');card.className='result-card '+(item.outcome==='applied'?'success':'');const title=document.createElement('strong');title.textContent=`${names[e.tool]||'业务操作'} · ${outcomes[item.outcome]||item.outcome}`;card.append(title);
         if(item.task_id){const b=document.createElement('button');b.className='text-button task-link';b.textContent=item.task_id;b.onclick=()=>this.select(Number(item.task_id.slice(1)),e.generation);card.append(b);}
+        if(item.pickup_label&&item.delivery_name){const route=document.createElement('p');route.textContent=`${item.pickup_label} → ${item.delivery_name}`;card.append(route);}
         const detail=document.createElement('p');detail.textContent=[item.phase_label,item.assigned_robot,item.priority?`等级 ${item.priority}`:'',item.reason].filter(Boolean).join(' · ');card.append(detail);row.results.append(card);}
     }
     if(['notice','error'].includes(e.kind)){if(row){const p=document.createElement('p');p.className=e.kind==='error'?'result-error':'chat-notice';p.textContent=e.message;row.article.append(p);}else if(!e.request_id)this.notice(e.message);}

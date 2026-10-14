@@ -1,5 +1,6 @@
 """Six bounded tools and a deliberate business-only view of domain state."""
 import re
+from copy import deepcopy
 
 PHASES = {
     "pending": "已创建，待分配", "reserved": "已预约，完成当前搬运后接手",
@@ -25,8 +26,8 @@ TOOLS = [
     {"type": "function", "function": {"name": name, "description": description, "parameters": schema}}
     for name, description, schema in [
         ("get_status", "查询真实业务状态；阶段不代表实际位移。可按任务或机器人筛选。", object_schema({"task_id": ID, "robot_id": ID})),
-        ("get_locations", "查询当前有效取货点和配送点ID；不要猜测位置。", object_schema({"kind": {"type": "string", "enum": ["all", "pickup", "delivery"]}})),
-        ("create_tasks", "执行明确下单指令。整批预检后顺序创建，普通默认2级，明确紧急5级；最多20项。", object_schema({"tasks": array_schema(object_schema({"pickup_id": ID, "delivery_id": ID, "priority": {"type": "integer", "minimum": 1, "maximum": 5}}, ["pickup_id", "delivery_id"]))}, ["tasks"])),
+        ("get_locations", "查询货架名称/别名及其pickup_id、取货点和配送点名称/别名。货架编号不一定等于取货点编号；下单前查当前实际对应关系，歧义须澄清。", object_schema({"kind": {"type": "string", "enum": ["all", "pickup", "delivery", "shelf"]}})),
+        ("create_tasks", "执行明确下单指令。用户货架/地点表达由你理解，先get_locations查询正式映射，再填写返回的P取货点ID和D配送点ID。缺少或歧义地点先追问，不用猜测。整批预检后顺序创建，普通默认2级，明确紧急5级；最多20项。", object_schema({"tasks": array_schema(object_schema({"pickup_id": ID, "delivery_id": ID, "priority": {"type": "integer", "minimum": 1, "maximum": 5}}, ["pickup_id", "delivery_id"]))}, ["tasks"])),
         ("raise_task_priorities", "执行明确提升指令。increment提升一级；set指定等级，不能降级；紧急为5。", object_schema({"changes": array_schema(object_schema({"task_id": ID, "mode": {"type": "string", "enum": ["increment", "set"]}, "priority": {"type": "integer", "minimum": 1, "maximum": 5}}, ["task_id", "mode"]))}, ["changes"])),
         ("cancel_tasks", "取消尚未开始装货的任务。装货、配送和卸货中的任务不可取消。", object_schema({"task_ids": array_schema(ID)}, ["task_ids"])),
         ("get_metrics", "查询完成数量、距离、任务周转及下单至装货耗时；耗时单位为调度时间步。", object_schema()),
@@ -78,7 +79,7 @@ def normalize(name, args):
     if name == "get_locations":
         fields(args, ["kind"])
         kind = args.get("kind", "all")
-        if kind not in ("all", "pickup", "delivery"):
+        if kind not in ("all", "pickup", "delivery", "shelf"):
             raise ValueError("作业点类型无效")
         return {"kind": kind}
     if name == "get_metrics":
@@ -108,8 +109,12 @@ def normalize(name, args):
 
 
 def task_view(task, warehouse):
-    return {"task_id": f"T{task.id:03}", "pickup_id": f"P{warehouse.pickups.index(task.pickup)+1:02}",
-            "delivery_id": f"D{warehouse.deliveries.index(task.delivery)+1}", "priority": task.priority,
+    pickup = warehouse.locations["pickups"][warehouse.pickups.index(task.pickup)]
+    delivery = warehouse.locations["deliveries"][warehouse.deliveries.index(task.delivery)]
+    shelves = [s["name"] for s in warehouse.locations["shelves"] if s["pickup_id"] == pickup["id"]]
+    return {"task_id": f"T{task.id:03}", "pickup_id": pickup["id"], "pickup_name": pickup["name"],
+            "pickup_label": shelves[0] if len(shelves) == 1 else pickup["name"], "shelf_names": shelves,
+            "delivery_id": delivery["id"], "delivery_name": delivery["name"], "priority": task.priority,
             "business_phase": task.status, "phase_label": PHASES[task.status],
             "assigned_robot": f"R{task.robot_id}" if task.robot_id else None}
 
@@ -117,9 +122,11 @@ def task_view(task, warehouse):
 def query(sim, name, args):
     if name == "get_locations":
         result = {}
-        for kind, points, prefix in (("pickup", sim.warehouse.pickups, "P"), ("delivery", sim.warehouse.deliveries, "D")):
+        for kind, group in (("pickup", "pickups"), ("delivery", "deliveries"), ("shelf", "shelves")):
             if args["kind"] in ("all", kind):
-                result[kind] = [{"id": f"{prefix}{i:02}" if prefix == "P" else f"D{i}", "name": f"取货点{i:02}" if prefix == "P" else f"配送点D{i}", "position": list(p)} for i, p in enumerate(points, 1)]
+                result[kind] = deepcopy(sim.warehouse.locations[group])
+        if args["kind"] in ("all", "shelf"):
+            result["note"] = "货架通过pickup_id取货，编号不必相同；没有登记的货架不能猜测。名称或别名有多个候选时先询问。当前无库存系统，一项任务表示一次搬运，不推断全部库存数量。"
         return result
     if name == "get_metrics":
         m = sim.snapshot().metrics

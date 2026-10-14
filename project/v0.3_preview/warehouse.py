@@ -5,6 +5,7 @@ from random import Random
 from config import DEFAULT_MAP
 from map_format import load_map, validate_map, robot_limits, integer
 from models import Position
+from locations import build_locations
 
 
 class Warehouse:
@@ -13,6 +14,7 @@ class Warehouse:
         self.map_id = map_id
         self.definition = validate_map(definition) if definition is not None else load_map(map_id)
         self.name = self.definition["name"]
+        self.locations = build_locations(self.definition)
         grid = self.definition["grid"]
         self.width, self.height = grid["width"], grid["height"]
         cells = [(x, y, c) for y, row in enumerate(grid["rows"]) for x, c in enumerate(row)]
