@@ -1,8 +1,9 @@
 """Exact matching for configurable fleets, using O(tasks * robots * 2**robots).
 
 Lexicographic objective: maximize assigned priority-5 count, then priority-4,
-etc.; then minimize total ETA. Arrival order breaks equal-cost ties only.
-This is exact for the supplied cost matrix, not global lifelong optimality.
+etc.; then satisfy optional available-robot preferences, then minimize total ETA.
+Arrival order breaks remaining ties. Forced owners are excluded by the cost matrix.
+This is exact under supplied constraints, not global lifelong optimality.
 """
 from dataclasses import dataclass
 from config import LOAD_TICKS, UNLOAD_TICKS
@@ -21,10 +22,11 @@ def completion_cost(warehouse, slot, task):
             + warehouse.distance(task.pickup, task.delivery) + UNLOAD_TICKS)
 
 
-def exact_matching(slots, tasks, cost):
+def exact_matching(slots, tasks, cost, preference=None):
     """Dynamic programming over used robot masks; each task is used at most once."""
-    # score = negative counts at each priority, ETA sum, arrival tie-break.
-    empty = (0,) * 7
+    # score = priority counts, optional preference penalty, ETA sum, arrival tie-break.
+    empty = (0,) * (8 if preference else 7)
+    eta_index = 6 if preference else 5
     states = {0: (empty, {})}
     for task in sorted(tasks, key=lambda t: t.id):
         estimates = [cost(slot, task) for slot in slots]
@@ -38,8 +40,10 @@ def exact_matching(slots, tasks, cost):
                     continue
                 updated = list(score)
                 updated[5 - task.priority] -= 1
-                updated[5] += eta
-                updated[6] += task.created_at
+                if preference:
+                    updated[5] += preference(slot, task)
+                updated[eta_index] += eta
+                updated[eta_index + 1] += task.created_at
                 new_mask = mask | (1 << index)
                 value = (tuple(updated), {**pairs, slot.robot_id: task.id})
                 if new_mask not in following or value[0] < following[new_mask][0]:

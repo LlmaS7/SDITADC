@@ -44,7 +44,7 @@ def load(path=None):
     events = data.get("events", [])
     if any(not isinstance(e.get("tick"), int) or e["tick"] < 0 for e in events):
         raise ValueError("场景事件时间无效")
-    if any(e.get("operation") not in ("add", "priority", "cancel", "auto") for e in events):
+    if any(e.get("operation") not in ("add", "priority", "cancel", "auto", "assignment", "copy") for e in events):
         raise ValueError("场景包含不支持的操作")
     sim.replay_events = sorted(events, key=lambda e: e["tick"])
     sim.replaying = True

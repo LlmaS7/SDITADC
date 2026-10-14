@@ -15,6 +15,10 @@ class BusinessExecutor:
         sim = self.controller.sim
         projected = {k: [t.priority, t.status] for k, t in sim.tasks.items()}
         for action in actions:
+            if action["operation"] == "copy":
+                if action["source_task_id"] not in sim.tasks:
+                    raise ValueError("复制来源任务不存在")
+                continue
             if action["operation"] == "add":
                 if action["pickup"] > len(sim.warehouse.pickups) or action["delivery"] > len(sim.warehouse.deliveries):
                     raise ValueError("当前场景没有此取货点或配送点")
@@ -23,7 +27,9 @@ class BusinessExecutor:
             if task_id not in projected:
                 raise ValueError(f"T{task_id:03}不存在")
             level, phase = projected[task_id]
-            if action["operation"] == "cancel":
+            if action["operation"] == "assignment":
+                sim.validate_assignment(task_id, action["mode"], action["robot_id"])
+            elif action["operation"] == "cancel":
                 if phase not in CANCELLABLE:
                     raise ValueError(f"T{task_id:03}已开始装货或已经结束，不能取消")
                 projected[task_id][1] = "cancelled"
@@ -72,13 +78,18 @@ class BusinessExecutor:
                 result["actions"].append({"operation": action["operation"], "outcome": "rejected", "reason": stop_reason})
                 continue
             op = action["operation"]
-            task_id = c.sim.next_id if op == "add" else action["task_id"]
+            task_id = c.sim.next_id if op in ("add", "copy") else action["task_id"]
             target = None
             if op == "priority":
                 current = c.sim.tasks[task_id].priority
                 target = min(5, current + 1) if action["mode"] == "increment" else action["priority"]
                 if current == target:
                     result["actions"].append({"operation": op, "outcome": "no_change", **task_view(c.sim.tasks[task_id], c.sim.warehouse), "reason": "任务已经达到此等级"})
+                    continue
+            if op == "assignment":
+                task = c.sim.tasks[task_id]
+                if (task.assignment_mode, task.assignment_robot_id) == (action["mode"], action["robot_id"]):
+                    result["actions"].append({"operation": op, "outcome": "no_change", **task_view(task, c.sim.warehouse), "reason": "任务已经使用此分配方式"})
                     continue
             item = {"operation": op, "outcome": "not_executed", "task_id": f"T{task_id:03}"}
             result["actions"].append(item)
@@ -87,10 +98,14 @@ class BusinessExecutor:
                     c.sim.command("add", pickup=c.sim.warehouse.pickups[action["pickup"]-1], delivery=c.sim.warehouse.deliveries[action["delivery"]-1], priority=action["priority"])
                 elif op == "priority":
                     c.sim.command("priority", task_id=task_id, priority=target)
+                elif op == "assignment":
+                    c.sim.command("assignment", task_id=task_id, mode=action["mode"], robot_id=action["robot_id"])
+                elif op == "copy":
+                    c.sim.command("copy", source_task_id=action["source_task_id"], priority=action.get("priority"))
                 else:
                     c.sim.command("cancel", task_id=task_id)
                 task = c.sim.tasks.get(task_id)
-                applied = task is not None and (op == "add" or (op == "cancel" and task.status == "cancelled") or (op == "priority" and task.priority == target))
+                applied = self.applied(op, task, action, target)
                 item.update(outcome="applied" if applied else "rejected")
                 if task:
                     item.update(task_view(task, c.sim.warehouse))
@@ -109,7 +124,7 @@ class BusinessExecutor:
                     item["reason"] = stop_reason
             except Exception:
                 task = c.sim.tasks.get(task_id)
-                if task and (op == "add" or (op == "cancel" and task.status == "cancelled") or (op == "priority" and task.priority == target)):
+                if self.applied(op, task, action, target):
                     item.update(outcome="applied", **task_view(task, c.sim.warehouse))
                 stop_reason = "业务处理或路线生成异常，请查看已生效结果；未继续执行"
                 item.update(planning="unavailable", reason=stop_reason)
@@ -119,3 +134,17 @@ class BusinessExecutor:
         while len(self.ledger) > 2048:
             self.ledger.popitem(last=False)
         return deepcopy(result)
+
+    @staticmethod
+    def applied(op, task, action, target):
+        if task is None:
+            return False
+        if op == "add":
+            return True
+        if op == "copy":
+            return task.copied_from == action["source_task_id"]
+        if op == "assignment":
+            return (task.assignment_mode, task.assignment_robot_id) == (action["mode"], action["robot_id"])
+        if op == "cancel":
+            return task.status == "cancelled"
+        return op == "priority" and task.priority == target

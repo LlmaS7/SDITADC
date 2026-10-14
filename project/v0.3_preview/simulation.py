@@ -74,6 +74,95 @@ class Simulation:
                              self.rng.choice(self.warehouse.deliveries),
                              self.rng.choices((1, 2, 3, 4), (4, 3, 2, 1))[0])
 
+    def copy_task(self, source_task_id, priority=None, task_id=None):
+        source = self.tasks[source_task_id]
+        level = source.priority if priority is None else priority
+        new_id = self.add_task(source.pickup, source.delivery, level, task_id, record=False)
+        self.tasks[new_id].copied_from = source_task_id
+        self.record("copy", id=new_id, source_task_id=source_task_id, priority=level)
+        self.message = f"复制 T{source_task_id:03d} → T{new_id:03d}"
+        return new_id
+
+    def assignment_cost(self, slot, task):
+        if task.assignment_mode == "forced" and slot.robot_id != task.assignment_robot_id:
+            return 10**6
+        return completion_cost(self.warehouse, slot, task)
+
+    def preference_cost(self, slots):
+        available = {slot.robot_id for slot in slots if not slot.deferred}
+        return lambda slot, task: int(task.assignment_mode == "preferred"
+            and task.assignment_robot_id in available and slot.robot_id != task.assignment_robot_id)
+
+    def validate_assignment(self, task_id, mode, robot_id=None):
+        if isinstance(task_id, bool) or not isinstance(task_id, int):
+            raise ValueError("任务编号无效")
+        if mode not in ("auto", "forced", "preferred"):
+            raise ValueError("分配模式无效")
+        task = self.tasks.get(task_id)
+        if task is None:
+            raise ValueError("任务不存在")
+        if task.status not in ("pending", "reserved", "to_pickup"):
+            raise ValueError("仅尚未开始装货的任务可以调整分配方式")
+        if mode == "auto":
+            if robot_id is not None:
+                raise ValueError("恢复自动分配不能指定机器人")
+            return
+        if isinstance(robot_id, bool) or not isinstance(robot_id, int):
+            raise ValueError("机器人编号无效")
+        robot = next((r for r in self.robots if r.id == robot_id), None)
+        if robot is None:
+            raise ValueError("机器人不存在")
+        if (task.assignment_mode, task.assignment_robot_id) == (mode, robot_id):
+            return
+        if mode == "forced":
+            if robot.task_id not in (None, task_id) or robot.next_task_id not in (None, task_id) or robot.loaded:
+                raise ValueError(f"R{robot_id}忙碌；本版不强制改派或预约指定")
+            if any(t.id != task_id and t.status not in FINISHED and t.assignment_mode == "forced"
+                   and t.assignment_robot_id == robot_id for t in self.tasks.values()):
+                raise ValueError(f"R{robot_id}已有其他人工指定任务")
+            # Explicit assignment may trade ETA, but must not bypass priority tiers.
+            free = [Slot(r.id, r.position) for r in self.robots if r.task_id in (None, task_id) and r.next_task_id in (None, task_id)]
+            pending = [t for t in self.tasks.values() if t.status == "pending" or t.id == task_id]
+            _, baseline = exact_matching(free, pending, self.assignment_cost)
+            _, remaining = exact_matching([s for s in free if s.robot_id != robot_id],
+                [t for t in pending if t.id != task_id], self.assignment_cost)
+            constrained = list(remaining[:5])
+            constrained[5 - task.priority] -= 1
+            if tuple(constrained) > baseline[:5]:
+                raise ValueError("本次指定会绕过待分配任务的硬优先级，请先处理更高等级任务")
+
+    def set_assignment(self, task_id, mode, robot_id=None, replay=False):
+        task = self.tasks[task_id]
+        if not replay:
+            self.validate_assignment(task_id, mode, robot_id)
+        else:
+            # Input replay does not recreate worker/planner calls between same-tick events.
+            if mode not in ("auto", "forced", "preferred") or (mode == "auto" and robot_id is not None):
+                raise ValueError("回放分配模式无效")
+            if mode != "auto" and not any(r.id == robot_id for r in self.robots):
+                raise ValueError("回放指定机器人不存在")
+            if task.status not in ("pending", "reserved", "to_pickup"):
+                raise ValueError("回放不能改派已装货或结束的任务")
+            if isinstance(task_id, bool) or not isinstance(task_id, int) or isinstance(robot_id, bool):
+                raise ValueError("回放分配编号无效")
+        if (task.assignment_mode, task.assignment_robot_id) == (mode, robot_id):
+            return
+        for robot in self.robots:
+            if robot.task_id == task_id:
+                robot.task_id = None
+                robot.phase = "parking"
+                robot.service_left = 0
+            if robot.next_task_id == task_id:
+                robot.next_task_id = None
+        task.status, task.robot_id = "pending", None
+        task.assignment_mode, task.assignment_robot_id = mode, robot_id
+        if mode == "forced" and not replay:
+            self.assign_task(self.robots[robot_id - 1], task_id)
+        self.record("assignment", id=task_id, mode=mode, robot_id=robot_id)
+        self.dirty = True
+        label = {"auto": "自动分配", "forced": "指定执行", "preferred": "优先使用"}[mode]
+        self.message = f"T{task_id:03d} · {label}" + (f" R{robot_id}" if robot_id else "")
+
     def set_priority(self, task_id, priority):
         task = self.tasks[task_id]
         if task.status in FINISHED:
@@ -162,7 +251,7 @@ class Simulation:
                 release, origin = self.task_tail(robot)
                 slots.append(Slot(robot.id, origin, release, True))
         urgent_pairs, urgent_score = exact_matching(
-            slots, urgent, lambda s, t: completion_cost(self.warehouse, s, t))
+            slots, urgent, self.assignment_cost, self.preference_cost(slots))
         for slot in slots:
             if slot.robot_id not in urgent_pairs:
                 continue
@@ -178,12 +267,12 @@ class Simulation:
                 self.assign_task(robot, task_id)
         free = [Slot(r.id, r.position) for r in self.robots if r.task_id is None]
         pending = [t for t in self.tasks.values() if t.status == "pending"]
-        pairs, score = exact_matching(free, pending, lambda s, t: completion_cost(self.warehouse, s, t))
+        pairs, score = exact_matching(free, pending, self.assignment_cost, self.preference_cost(free))
         for robot_id, task_id in pairs.items():
             self.assign_task(self.robots[robot_id - 1], task_id)
         self.assignment = {
-            "pairs": {**urgent_pairs, **pairs}, "eta_sum": urgent_score[5] + score[5],
-            "scope": "本轮 / 硬优先级 / 给定预计完成时间代价",
+            "pairs": {**urgent_pairs, **pairs}, "eta_sum": urgent_score[-2] + score[-2],
+            "scope": "本轮 / 人工指定约束 / 硬优先级 / 软偏好 / 给定预计完成时间代价",
             "cost_model": "剩余必要动作 + 网格最短路 + 装卸；不预测未来插单与冲突等待",
         }
         # Parking endpoints are unique, even if service endpoints are shared.
@@ -367,6 +456,16 @@ class Simulation:
                 task = self.tasks[robot.task_id]
                 if task.robot_id != robot.id or task.status != robot.phase:
                     raise AssertionError("Task/robot states disagree")
+        for task in self.tasks.values():
+            if task.assignment_mode not in ("auto", "forced", "preferred"):
+                raise AssertionError("Invalid assignment mode")
+            if task.assignment_mode == "auto":
+                if task.assignment_robot_id is not None:
+                    raise AssertionError("Automatic task retains a requested robot")
+            elif not any(r.id == task.assignment_robot_id for r in self.robots):
+                raise AssertionError("Requested robot does not exist")
+            if task.assignment_mode == "forced" and task.robot_id is not None and task.robot_id != task.assignment_robot_id:
+                raise AssertionError("Forced assignment changed owner")
 
     def apply_replay_events(self):
         while self.replay_events and self.replay_events[0]["tick"] <= self.tick:
@@ -381,6 +480,10 @@ class Simulation:
             elif op == "auto":
                 self.auto = event["enabled"]
                 self.record("auto", enabled=self.auto)
+            elif op == "assignment":
+                self.set_assignment(event["id"], event["mode"], event.get("robot_id"), replay=True)
+            elif op == "copy":
+                self.copy_task(event["source_task_id"], event["priority"], event["id"])
         # Replay stays in replay mode after the last event: no unrecorded auto arrivals.
 
     def command(self, operation, **data):
@@ -394,6 +497,10 @@ class Simulation:
             self.set_priority(**data)
         elif operation == "cancel":
             self.cancel_task(**data)
+        elif operation == "assignment":
+            self.set_assignment(**data)
+        elif operation == "copy":
+            self.copy_task(**data)
         elif operation == "auto":
             self.auto = data["enabled"]
             self.record("auto", enabled=self.auto)

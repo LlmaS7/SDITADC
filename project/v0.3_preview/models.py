@@ -23,6 +23,9 @@ class Task:
     picked_at: int | None = None
     completed_at: int | None = None
     preemptions: int = 0
+    assignment_mode: str = "auto"
+    assignment_robot_id: int | None = None
+    copied_from: int | None = None
 
 
 @dataclass

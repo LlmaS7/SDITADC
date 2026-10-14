@@ -40,7 +40,7 @@
       </div>
       <section id="chat-content" class="sidebar-content" role="tabpanel" aria-labelledby="tab-chat" hidden>
         <div class="chat-heading"><div><h2>仓库业务助手</h2><p id="ai-status" class="subtle">尚未配置</p></div><button id="chat-clear" class="text-button">清空对话</button></div>
-        <div id="chat-messages" class="chat-messages" aria-live="polite"><div class="chat-welcome"><span class="assistant-mark">S</span><h3>用一句话安排搬运</h3><p>查询任务、创建取送任务、设为紧急，或取消未开始装货的任务。</p><p class="subtle">例如：将四号货架的货物送到二号配送点，设为紧急。</p><button id="chat-configure" class="small">配置 AI</button></div></div>
+        <div id="chat-messages" class="chat-messages" aria-live="polite"><div class="chat-welcome"><span class="assistant-mark">S</span><h3>用一句话安排搬运</h3><p>查询任务、创建取送任务、调整优先级、取消任务，也可指定机器人、设置偏好或复制任务。</p><p class="subtle">例如：将四号货架的货物送到二号配送点，设为紧急。</p><button id="chat-configure" class="small">配置 AI</button></div></div>
         <div class="chat-compose"><div class="chat-context"><span id="chat-association">未关联任务</span><button id="chat-unlink" class="text-button">清除关联</button></div><textarea id="chat-input" rows="3" maxlength="6000" placeholder="输入业务需求…" aria-label="业务消息"></textarea><div class="chat-compose-actions"><span class="subtle">Enter 发送 · Shift+Enter 换行</span><button id="chat-stop" class="small" disabled>停止回复</button><button id="chat-send" class="primary" disabled>发送</button></div><p class="chat-footnote">已执行的操作不会因停止回复而撤销。</p></div>
       </section>
     </aside>

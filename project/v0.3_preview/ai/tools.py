@@ -1,4 +1,4 @@
-"""Six bounded tools and a deliberate business-only view of domain state."""
+"""Ten bounded tools and a deliberate business-only view of domain state."""
 import re
 from copy import deepcopy
 
@@ -9,7 +9,8 @@ PHASES = {
     "completed": "已完成", "cancelled": "已取消", "idle": "空闲", "parking": "前往停车位",
 }
 CANCELLABLE = {"pending", "reserved", "to_pickup"}
-WRITES = {"create_tasks", "raise_task_priorities", "cancel_tasks"}
+WRITES = {"create_tasks", "raise_task_priorities", "cancel_tasks", "assign_task",
+          "release_task_assignment", "set_task_preference", "copy_task"}
 MAX_BATCH = 20
 
 
@@ -31,6 +32,10 @@ TOOLS = [
         ("raise_task_priorities", "执行明确提升指令。increment提升一级；set指定等级，不能降级；紧急为5。", object_schema({"changes": array_schema(object_schema({"task_id": ID, "mode": {"type": "string", "enum": ["increment", "set"]}, "priority": {"type": "integer", "minimum": 1, "maximum": 5}}, ["task_id", "mode"]))}, ["changes"])),
         ("cancel_tasks", "取消尚未开始装货的任务。装货、配送和卸货中的任务不可取消。", object_schema({"task_ids": array_schema(ID)}, ["task_ids"])),
         ("get_metrics", "查询完成数量、距离、任务周转及下单至装货耗时；耗时单位为调度时间步。", object_schema()),
+        ("assign_task", "将尚未开始装货的任务指定给无其他任务的机器人，或锁定其当前执行机器人；允许装货前安全改派到空闲/回停车位机器人，不抢占或预约忙碌机器人的其他任务，不绕过硬优先级。指定关系保留，紧急任务可暂时抢占未装货普通任务，但其后仍只交给指定机器人。先查询真实状态。", object_schema({"task_id": ID, "robot_id": ID}, ["task_id", "robot_id"])),
+        ("release_task_assignment", "解除任务的人工指定或软偏好，恢复自动分配并重新规划；只允许尚未开始装货的任务，不取消任务。", object_schema({"task_id": ID}, ["task_id"])),
+        ("set_task_preference", "设置任务的软偏好：在同等硬优先级分配数量下优先满足可立即接手的机器人偏好，再最小化ETA。忙碌时可用其他机器人，不因普通任务偏好抢占别的任务。可替换原人工指定；仅装货前允许，执行机器人不保证是偏好机器人。", object_schema({"task_id": ID, "robot_id": ID}, ["task_id", "robot_id"])),
+        ("copy_task", "明确复制已有任务，创建1至20个独立新任务。默认继承取送地点和等级，可明确指定新等级；不继承原任务状态、机器人归属、指定或偏好。已完成或取消的任务也可作为来源。先查询源任务，用户未指定份数则默认1。", object_schema({"task_id": ID, "count": {"type": "integer", "minimum": 1, "maximum": MAX_BATCH}, "priority": {"type": "integer", "minimum": 1, "maximum": 5}}, ["task_id"])),
     ]
 ]
 
@@ -73,6 +78,20 @@ def sequence(value):
 
 
 def normalize(name, args):
+    if name in ("assign_task", "release_task_assignment", "set_task_preference"):
+        required = ["task_id"] if name == "release_task_assignment" else ["task_id", "robot_id"]
+        fields(args, required, required)
+        mode = {"assign_task": "forced", "release_task_assignment": "auto", "set_task_preference": "preferred"}[name]
+        return [{"operation": "assignment", "task_id": identifier(args["task_id"], "T"), "mode": mode,
+                 "robot_id": None if mode == "auto" else identifier(args["robot_id"], "R")}]
+    if name == "copy_task":
+        fields(args, ["task_id", "count", "priority"], ["task_id"])
+        source = identifier(args["task_id"], "T")
+        count = args.get("count", 1)
+        if isinstance(count, bool) or not isinstance(count, int) or not 1 <= count <= MAX_BATCH:
+            raise ValueError("复制数量必须为1至20的整数")
+        level = {"priority": priority(args["priority"])} if "priority" in args else {}
+        return [{"operation": "copy", "source_task_id": source, **level} for _ in range(count)]
     if name == "get_status":
         fields(args, ["task_id", "robot_id"])
         return {k: identifier(v, "T" if k == "task_id" else "R") for k, v in args.items()}
@@ -105,7 +124,7 @@ def normalize(name, args):
     if name == "cancel_tasks":
         fields(args, ["task_ids"], ["task_ids"])
         return [{"operation": "cancel", "task_id": identifier(value, "T")} for value in sequence(args["task_ids"])]
-    raise ValueError("不支持此工具；助手仅提供六类业务能力")
+    raise ValueError("不支持此工具；助手仅提供十类业务工具")
 
 
 def task_view(task, warehouse):
@@ -116,7 +135,11 @@ def task_view(task, warehouse):
             "pickup_label": shelves[0] if len(shelves) == 1 else pickup["name"], "shelf_names": shelves,
             "delivery_id": delivery["id"], "delivery_name": delivery["name"], "priority": task.priority,
             "business_phase": task.status, "phase_label": PHASES[task.status],
-            "assigned_robot": f"R{task.robot_id}" if task.robot_id else None}
+            "assigned_robot": f"R{task.robot_id}" if task.robot_id else None,
+            "assignment_mode": task.assignment_mode,
+            "requested_robot": f"R{task.assignment_robot_id}" if task.assignment_robot_id else None,
+            "assignment_label": {"auto": "自动分配", "forced": "人工指定", "preferred": "软偏好"}[task.assignment_mode],
+            "copied_from": f"T{task.copied_from:03}" if task.copied_from else None}
 
 
 def query(sim, name, args):

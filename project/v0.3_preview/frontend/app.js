@@ -45,6 +45,7 @@ function renderTasks() {
       row.className='task-card'+(t.id===selected?' selected':'');row.dataset.taskId=t.id;
       row.setAttribute('aria-label',`${taskName(t.id)} ${t.label}`);
       row.innerHTML=`<span class="task-top"><span class="task-id">${taskName(t.id)} <span class="priority-tag${t.priority===5?' urgent':''}">${t.priority===5?'紧急':'等级 '+t.priority}</span></span><span class="task-owner">${t.label}${t.robot_id?' · R'+t.robot_id:''}</span></span><span class="task-route">取货点 ${String(t.pickup_number).padStart(2,'0')} → 配送点 D${t.delivery_number}</span>`;
+      if(t.assignment_mode!=='auto'&&t.assignment_robot_id){const policy=document.createElement('span');policy.className='subtle';policy.textContent=`${t.assignment_mode==='forced'?'人工指定':'优先使用'} R${t.assignment_robot_id}`;row.append(policy);}
       fragment.append(row);
     }
     if(!list.length) {const p=document.createElement('p');p.className='empty';p.textContent='当前筛选下没有任务';fragment.append(p);}
@@ -53,7 +54,9 @@ function renderTasks() {
   const t=chosen();
   $('detail-title').textContent=t?`${taskName(t.id)} · ${t.label}`:'选择一个任务';
   $('detail-route').textContent=t?`取货点 ${t.pickup_number} → 配送点 D${t.delivery_number}`:'点击任务查看其取送位置';
-  $('detail-note').textContent=t?.status==='reserved'?`R${t.robot_id} 完成当前搬运后接手`:t?.status==='pending' && t.priority===5?'暂无立即可用的机器人，等待安全接手':t?'地图高亮所选任务的取货与配送位置':'';
+  const policy=t?.assignment_mode==='forced'?`人工指定 R${t.assignment_robot_id}`:t?.assignment_mode==='preferred'?`优先使用 R${t.assignment_robot_id}，可由其他机器人接手`:'';
+  const stage=t?.status==='reserved'?`R${t.robot_id} 完成当前搬运后接手`:t?.status==='pending'&&t.priority===5?'暂无立即可用的机器人，等待安全接手':t?'地图高亮所选任务的取货与配送位置':'';
+  $('detail-note').textContent=[policy,stage].filter(Boolean).join(' · ');
   scene3d.highlight(t);controls();
   chat.updateAssociation();
 }

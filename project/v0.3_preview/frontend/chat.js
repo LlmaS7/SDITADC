@@ -1,6 +1,6 @@
 import {api} from './settings.js';
 const $=id=>document.getElementById(id);
-const names={get_status:'查询业务状态',get_locations:'查询作业点',create_tasks:'创建任务',raise_task_priorities:'提升优先级',cancel_tasks:'取消任务',get_metrics:'查询业务指标'};
+const names={get_status:'查询业务状态',get_locations:'查询作业点',create_tasks:'创建任务',raise_task_priorities:'提升优先级',cancel_tasks:'取消任务',get_metrics:'查询业务指标',assign_task:'指定执行',release_task_assignment:'解除指定',set_task_preference:'设置软偏好',copy_task:'复制任务'};
 const outcomes={applied:'已生效',no_change:'无需改变',rejected:'未能执行',not_executed:'未执行'};
 export class Chat {
   constructor(options){
@@ -37,7 +37,7 @@ export class Chat {
       for(const item of e.result.actions||[]){const card=document.createElement('div');card.className='result-card '+(item.outcome==='applied'?'success':'');const title=document.createElement('strong');title.textContent=`${names[e.tool]||'业务操作'} · ${outcomes[item.outcome]||item.outcome}`;card.append(title);
         if(item.task_id){const b=document.createElement('button');b.className='text-button task-link';b.textContent=item.task_id;b.onclick=()=>this.select(Number(item.task_id.slice(1)),e.generation);card.append(b);}
         if(item.pickup_label&&item.delivery_name){const route=document.createElement('p');route.textContent=`${item.pickup_label} → ${item.delivery_name}`;card.append(route);}
-        const detail=document.createElement('p');detail.textContent=[item.phase_label,item.assigned_robot,item.priority?`等级 ${item.priority}`:'',item.reason].filter(Boolean).join(' · ');card.append(detail);row.results.append(card);}
+        const detail=document.createElement('p');detail.textContent=[item.phase_label,item.assigned_robot,item.priority?`等级 ${item.priority}`:'',item.assignment_mode!=='auto'&&item.requested_robot?`${item.assignment_label} ${item.requested_robot}`:'',item.copied_from?`复制自 ${item.copied_from}`:'',item.reason].filter(Boolean).join(' · ');card.append(detail);row.results.append(card);}
     }
     if(['notice','error'].includes(e.kind)){if(row){const p=document.createElement('p');p.className=e.kind==='error'?'result-error':'chat-notice';p.textContent=e.message;row.article.append(p);}else if(!e.request_id)this.notice(e.message);}
     if(e.kind==='done'&&row)row.progress.textContent='本轮处理结束 · 操作以结果卡为准';
