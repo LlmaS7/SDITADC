@@ -1,0 +1,133 @@
+"""Six bounded tools and a deliberate business-only view of domain state."""
+import re
+
+PHASES = {
+    "pending": "已创建，待分配", "reserved": "已预约，完成当前搬运后接手",
+    "to_pickup": "已分配，处于取货阶段", "picking": "处于装货阶段",
+    "to_delivery": "已载货，处于配送阶段", "unloading": "处于卸货阶段",
+    "completed": "已完成", "cancelled": "已取消", "idle": "空闲", "parking": "前往停车位",
+}
+CANCELLABLE = {"pending", "reserved", "to_pickup"}
+WRITES = {"create_tasks", "raise_task_priorities", "cancel_tasks"}
+MAX_BATCH = 20
+
+
+def object_schema(properties=None, required=None):
+    return {"type": "object", "properties": properties or {}, "required": required or [], "additionalProperties": False}
+
+
+def array_schema(items):
+    return {"type": "array", "items": items, "minItems": 1, "maxItems": MAX_BATCH}
+
+
+ID = {"type": "string"}
+TOOLS = [
+    {"type": "function", "function": {"name": name, "description": description, "parameters": schema}}
+    for name, description, schema in [
+        ("get_status", "查询真实业务状态；阶段不代表实际位移。可按任务或机器人筛选。", object_schema({"task_id": ID, "robot_id": ID})),
+        ("get_locations", "查询当前有效取货点和配送点ID；不要猜测位置。", object_schema({"kind": {"type": "string", "enum": ["all", "pickup", "delivery"]}})),
+        ("create_tasks", "执行明确下单指令。整批预检后顺序创建，普通默认2级，明确紧急5级；最多20项。", object_schema({"tasks": array_schema(object_schema({"pickup_id": ID, "delivery_id": ID, "priority": {"type": "integer", "minimum": 1, "maximum": 5}}, ["pickup_id", "delivery_id"]))}, ["tasks"])),
+        ("raise_task_priorities", "执行明确提升指令。increment提升一级；set指定等级，不能降级；紧急为5。", object_schema({"changes": array_schema(object_schema({"task_id": ID, "mode": {"type": "string", "enum": ["increment", "set"]}, "priority": {"type": "integer", "minimum": 1, "maximum": 5}}, ["task_id", "mode"]))}, ["changes"])),
+        ("cancel_tasks", "取消尚未开始装货的任务。装货、配送和卸货中的任务不可取消。", object_schema({"task_ids": array_schema(ID)}, ["task_ids"])),
+        ("get_metrics", "查询完成数量、距离、任务周转及下单至装货耗时；耗时单位为调度时间步。", object_schema()),
+    ]
+]
+
+
+def fields(value, allowed, required=()):
+    if not isinstance(value, dict) or set(value) - set(allowed) or set(required) - set(value):
+        raise ValueError("参数字段缺失或包含不支持的字段")
+
+
+def number(value, prefix=""):
+    if isinstance(value, bool):
+        raise ValueError("标识无效")
+    if isinstance(value, int):
+        result = value
+    elif isinstance(value, str) and re.fullmatch(rf"{prefix}0*[1-9]\d*", value, re.I):
+        result = int(re.sub(r"^[A-Za-z]+", "", value))
+    else:
+        raise ValueError("请使用查询返回的作业点、任务或机器人ID")
+    if not 1 <= result <= 10**9:
+        raise ValueError("标识超出范围")
+    return result
+
+
+def priority(value):
+    if isinstance(value, bool) or not isinstance(value, int) or not 1 <= value <= 5:
+        raise ValueError("等级必须为1至5的整数")
+    return value
+
+
+def identifier(value, prefix):
+    if not isinstance(value, str):
+        raise ValueError("工具中的ID必须为字符串")
+    return number(value, prefix)
+
+
+def sequence(value):
+    if not isinstance(value, list) or not 1 <= len(value) <= MAX_BATCH:
+        raise ValueError("批量数量必须为1至20项，请拆分过长请求")
+    return value
+
+
+def normalize(name, args):
+    if name == "get_status":
+        fields(args, ["task_id", "robot_id"])
+        return {k: identifier(v, "T" if k == "task_id" else "R") for k, v in args.items()}
+    if name == "get_locations":
+        fields(args, ["kind"])
+        kind = args.get("kind", "all")
+        if kind not in ("all", "pickup", "delivery"):
+            raise ValueError("作业点类型无效")
+        return {"kind": kind}
+    if name == "get_metrics":
+        fields(args, [])
+        return {}
+    if name == "create_tasks":
+        fields(args, ["tasks"], ["tasks"])
+        result = []
+        for item in sequence(args["tasks"]):
+            fields(item, ["pickup_id", "delivery_id", "priority"], ["pickup_id", "delivery_id"])
+            result.append({"operation": "add", "pickup": identifier(item["pickup_id"], "P"), "delivery": identifier(item["delivery_id"], "D"), "priority": priority(item.get("priority", 2))})
+        return result
+    if name == "raise_task_priorities":
+        fields(args, ["changes"], ["changes"])
+        result = []
+        for item in sequence(args["changes"]):
+            fields(item, ["task_id", "mode", "priority"], ["task_id", "mode"])
+            mode = item["mode"]
+            if mode not in ("increment", "set") or (mode == "increment" and "priority" in item):
+                raise ValueError("提升模式无效")
+            result.append({"operation": "priority", "task_id": identifier(item["task_id"], "T"), "mode": mode, **({"priority": priority(item.get("priority"))} if mode == "set" else {})})
+        return result
+    if name == "cancel_tasks":
+        fields(args, ["task_ids"], ["task_ids"])
+        return [{"operation": "cancel", "task_id": identifier(value, "T")} for value in sequence(args["task_ids"])]
+    raise ValueError("不支持此工具；助手仅提供六类业务能力")
+
+
+def task_view(task, warehouse):
+    return {"task_id": f"T{task.id:03}", "pickup_id": f"P{warehouse.pickups.index(task.pickup)+1:02}",
+            "delivery_id": f"D{warehouse.deliveries.index(task.delivery)+1}", "priority": task.priority,
+            "business_phase": task.status, "phase_label": PHASES[task.status],
+            "assigned_robot": f"R{task.robot_id}" if task.robot_id else None}
+
+
+def query(sim, name, args):
+    if name == "get_locations":
+        result = {}
+        for kind, points, prefix in (("pickup", sim.warehouse.pickups, "P"), ("delivery", sim.warehouse.deliveries, "D")):
+            if args["kind"] in ("all", kind):
+                result[kind] = [{"id": f"{prefix}{i:02}" if prefix == "P" else f"D{i}", "name": f"取货点{i:02}" if prefix == "P" else f"配送点D{i}", "position": list(p)} for i, p in enumerate(points, 1)]
+        return result
+    if name == "get_metrics":
+        m = sim.snapshot().metrics
+        return {"completed": m.get("completed", 0), "pending": m.get("pending", 0), "distance": m.get("distance", 0), "path_waits": m.get("waits", 0), "average_turnaround": m.get("avg_completion", 0), "average_order_to_loading": m.get("avg_wait", 0), "duration_unit": "调度时间步（不是秒）"}
+    if "task_id" in args and args["task_id"] not in sim.tasks:
+        raise ValueError("任务不存在")
+    if "robot_id" in args and not any(r.id == args["robot_id"] for r in sim.robots):
+        raise ValueError("机器人不存在")
+    tasks = [task_view(t, sim.warehouse) for t in sorted(sim.tasks.values(), key=lambda t: t.id) if (t.status != "cancelled" or "task_id" in args) and ("task_id" not in args or t.id == args["task_id"])]
+    robots = [{"robot_id": f"R{r.id}", "position": list(r.position), "business_phase": r.phase, "phase_label": PHASES[r.phase], "loaded": r.loaded, "task_id": f"T{r.task_id:03}" if r.task_id else None, "reserved_task": f"T{r.next_task_id:03}" if r.next_task_id else None, "completed": r.completed} for r in sim.robots if "robot_id" not in args or r.id == args["robot_id"]]
+    return {"tasks": tasks, "robots": robots, "note": "业务阶段不证明当前实际移动，预约不等于已开始搬运。"}
