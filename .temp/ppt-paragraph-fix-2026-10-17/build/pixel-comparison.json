@@ -1,0 +1,99 @@
+[
+  {
+    "slide": 1,
+    "changedPixels": 0,
+    "changedRatio": 0,
+    "outsideParagraphRegions": 0,
+    "bbox": null
+  },
+  {
+    "slide": 2,
+    "changedPixels": 7655,
+    "changedRatio": 0.008306206597222223,
+    "outsideParagraphRegions": 0,
+    "bbox": [
+      66,
+      552,
+      1009,
+      576
+    ]
+  },
+  {
+    "slide": 3,
+    "changedPixels": 0,
+    "changedRatio": 0,
+    "outsideParagraphRegions": 0,
+    "bbox": null
+  },
+  {
+    "slide": 4,
+    "changedPixels": 9078,
+    "changedRatio": 0.009850260416666666,
+    "outsideParagraphRegions": 0,
+    "bbox": [
+      64,
+      522,
+      1145,
+      544
+    ]
+  },
+  {
+    "slide": 5,
+    "changedPixels": 17467,
+    "changedRatio": 0.01895290798611111,
+    "outsideParagraphRegions": 0,
+    "bbox": [
+      67,
+      470,
+      1073,
+      532
+    ]
+  },
+  {
+    "slide": 6,
+    "changedPixels": 0,
+    "changedRatio": 0,
+    "outsideParagraphRegions": 0,
+    "bbox": null
+  },
+  {
+    "slide": 7,
+    "changedPixels": 0,
+    "changedRatio": 0,
+    "outsideParagraphRegions": 0,
+    "bbox": null
+  },
+  {
+    "slide": 8,
+    "changedPixels": 4070,
+    "changedRatio": 0.004416232638888889,
+    "outsideParagraphRegions": 0,
+    "bbox": [
+      67,
+      405,
+      418,
+      428
+    ]
+  },
+  {
+    "slide": 9,
+    "changedPixels": 0,
+    "changedRatio": 0,
+    "outsideParagraphRegions": 0,
+    "bbox": null
+  },
+  {
+    "slide": 10,
+    "changedPixels": 0,
+    "changedRatio": 0,
+    "outsideParagraphRegions": 0,
+    "bbox": null
+  },
+  {
+    "slide": 11,
+    "changedPixels": 0,
+    "changedRatio": 0,
+    "outsideParagraphRegions": 0,
+    "bbox": null
+  }
+]

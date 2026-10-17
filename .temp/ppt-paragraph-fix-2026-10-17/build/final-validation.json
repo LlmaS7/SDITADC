@@ -1,0 +1,171 @@
+{
+  "schemaVersion": "presentation-finalization.v1",
+  "finalSha256": "2d459c1647ff597c7eadbad7aee7aa23cbf52cb9ba41e080a3298c43c42fe6c7",
+  "byteCount": 2751411,
+  "packageIntegrity": {
+    "chart_count": 0,
+    "claim_boundary": "Structural package checks only; no slide text, notes, formulas, chart values, or native PowerPoint execution were inspected.",
+    "finding_count": 0,
+    "findings": [],
+    "notes_parts_skipped": 11,
+    "relationship_part_count": 32,
+    "slide_count": 11,
+    "status": "pass",
+    "exitCode": 0,
+    "findingCount": 0,
+    "warnings": []
+  },
+  "presentationLayout": {
+    "finding_count": 0,
+    "findings": [],
+    "font_policy": {
+      "checked_text_script_count": 217,
+      "native_font_rendering_verified": false,
+      "observed_font_families": [
+        "Georgia",
+        "Microsoft YaHei",
+        "STZhongsong"
+      ],
+      "observed_font_use_counts": {
+        "Georgia": 20,
+        "Microsoft YaHei": 169,
+        "STZhongsong": 28
+      },
+      "passed": true,
+      "performed": true
+    },
+    "slide_count": 11,
+    "slide_size_in": [
+      13.3333,
+      7.5
+    ],
+    "warning_count": 1,
+    "warnings": [
+      {
+        "available_bottom_in": 6.3542,
+        "columns": 3,
+        "declared_bottom_in": 6.3542,
+        "estimated_native_bottom_in": 6.37,
+        "footer_object_ids": [
+          "8"
+        ],
+        "kind": "native_table_overflow",
+        "overflow_in": 0.0158,
+        "rows": 4,
+        "slide": 9,
+        "table_id": "5"
+      }
+    ],
+    "exitCode": 0,
+    "findingCount": 0,
+    "fontPolicy": {
+      "checked_text_script_count": 217,
+      "native_font_rendering_verified": false,
+      "observed_font_families": [
+        "Georgia",
+        "Microsoft YaHei",
+        "STZhongsong"
+      ],
+      "observed_font_use_counts": {
+        "Georgia": 20,
+        "Microsoft YaHei": 169,
+        "STZhongsong": 28
+      },
+      "passed": true,
+      "performed": true
+    }
+  },
+  "fontSelection": {
+    "basis": "reference",
+    "approvedFamilies": [
+      "Microsoft YaHei",
+      "STZhongsong",
+      "Georgia"
+    ],
+    "scriptFonts": {},
+    "referenceSha256": "6d1120e13f3ee4d80aec503567f132b6eb3d1e57de2e0708d8e8924a53c50d4e",
+    "referenceFontsVerifiedInEncodedText": true,
+    "checked_text_script_count": 217,
+    "native_font_rendering_verified": false,
+    "observed_font_families": [
+      "Georgia",
+      "Microsoft YaHei",
+      "STZhongsong"
+    ],
+    "observed_font_use_counts": {
+      "Georgia": 20,
+      "Microsoft YaHei": 169,
+      "STZhongsong": 28
+    },
+    "passed": true,
+    "performed": true
+  },
+  "firstPartyImport": {
+    "performed": true,
+    "passed": true,
+    "slideCount": 11,
+    "sha256": "2d459c1647ff597c7eadbad7aee7aa23cbf52cb9ba41e080a3298c43c42fe6c7",
+    "runtimeNodeModules": "C:/Users/25489/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules",
+    "nodeExecutable": "C:\\Users\\25489\\.cache\\codex-runtimes\\codex-primary-runtime\\dependencies\\node\\bin\\node.exe"
+  },
+  "nativeTableArithmetic": {
+    "performed": true,
+    "checked_column_count": 0,
+    "checks": [],
+    "claim_boundary": "Displayed-value arithmetic with rounding tolerance; not source-data verification.",
+    "eligible_table_count": 0,
+    "finding_count": 0,
+    "findings": [],
+    "native_table_count": 1,
+    "passed": true,
+    "schema_version": "presentation-native-table-arithmetic.v1",
+    "skipped_tables": [
+      {
+        "reason": "no_numeric_amounts",
+        "slide": 9,
+        "table": 1
+      }
+    ],
+    "slide_count": 11,
+    "warning_count": 0,
+    "warnings": []
+  },
+  "nativeChartTitles": {
+    "performed": true,
+    "checks": [],
+    "finding_count": 0,
+    "findings": [],
+    "native_chart_count": 0,
+    "native_powerpoint_verified": false,
+    "passed": true,
+    "presentation_sha256": "2d459c1647ff597c7eadbad7aee7aa23cbf52cb9ba41e080a3298c43c42fe6c7",
+    "schema_version": "presentation-native-chart-titles.v1",
+    "slide_count": 11,
+    "source_text_emitted": false,
+    "unresolved_linked_title_count": 0
+  },
+  "sourceDerivedPolicyFlags": [
+    "--expected-slide-size-emu",
+    "12192000,6858000",
+    "--require-native-table-slide",
+    "9",
+    "--cover-role",
+    "none",
+    "--expected-slide-count",
+    "11",
+    "--approved-font-family",
+    "Microsoft YaHei",
+    "--approved-font-family",
+    "STZhongsong",
+    "--approved-font-family",
+    "Georgia"
+  ],
+  "nativeChartValidation": {
+    "detectedOwnerSlides": [],
+    "detectedChartCount": 0,
+    "targetApplication": "portable",
+    "sourceChartOwnersExplicitlyDeclared": true,
+    "validatorRan": false,
+    "passed": true
+  }
+}

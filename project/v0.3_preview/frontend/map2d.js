@@ -1,4 +1,6 @@
 import { robotColor } from './robot-colors.js';
+import { theme } from './theme.js';
+const art = theme.map;
 const key = p => `${p[0]},${p[1]}`;
 
 export class Map2D {
@@ -88,7 +90,7 @@ export class Map2D {
     this.oy = this.height/2-this.focusY*this.cell;
     this.cache.width = this.canvas.width; this.cache.height = this.canvas.height;
     const c = this.cache.getContext('2d'); c.scale(this.dpr, this.dpr);
-    c.fillStyle = '#dbe4e9'; c.fillRect(0, 0, this.width, this.height);
+    c.fillStyle = art.canvas; c.fillRect(0, 0, this.width, this.height);
     const shelves = new Set(m.shelves.map(key)), obstacles = new Set(m.obstacles.map(key));
     const blocked = new Set(m.blocked.map(key));
     // Rebuild only the visible cells; the raster cache always stays viewport-sized.
@@ -96,21 +98,21 @@ export class Map2D {
     const top=Math.max(0,Math.floor(-this.oy/this.cell)), bottom=Math.min(m.height,Math.ceil((this.height-this.oy)/this.cell));
     for (let y = top; y < bottom; y++) for (let x = left; x < right; x++) {
       const k = `${x},${y}`;
-      c.fillStyle = shelves.has(k) ? '#61788c' : obstacles.has(k) ? '#ab8d68' : blocked.has(k) ? '#344b5d' : '#edf2f5';
+      c.fillStyle = shelves.has(k) ? art.rack : obstacles.has(k) ? art.obstacle : blocked.has(k) ? art.wall : art.floor;
       c.fillRect(this.ox + x*this.cell, this.oy + y*this.cell, this.cell, this.cell);
-      c.strokeStyle = blocked.has(k) ? '#445e71' : '#cbd8e0'; c.lineWidth = .5;
+      c.strokeStyle = blocked.has(k) ? art.edge : art.grid; c.lineWidth = .5;
       c.strokeRect(this.ox + x*this.cell, this.oy + y*this.cell, this.cell, this.cell);
       if (obstacles.has(k)) {
         const px = this.ox + x*this.cell, py = this.oy + y*this.cell;
         const inset=this.cell*.12;
-        c.strokeStyle = '#745939'; c.beginPath(); c.moveTo(px+inset,py+inset); c.lineTo(px+this.cell-inset,py+this.cell-inset); c.stroke();
+        c.strokeStyle = art.crateEdge; c.beginPath(); c.moveTo(px+inset,py+inset); c.lineTo(px+this.cell-inset,py+this.cell-inset); c.stroke();
       }
     }
-    for (const [points, color, label] of [[m.pickups,'#a7d1e3',i=>String(i+1)], [m.deliveries,'#a0d8b8',i=>`D${i+1}`], [m.parking,'#bbb8db',()=> 'P']]) {
+    for (const [points, color, label] of [[m.pickups,art.pickup,i=>String(i+1)], [m.deliveries,art.delivery,i=>`D${i+1}`], [m.parking,art.parking,()=> 'P']]) {
       points.forEach((p,i) => {
         const [x,y] = this.center(p);
         c.fillStyle = color; c.fillRect(x-this.cell*.4,y-this.cell*.4,this.cell*.8,this.cell*.8);
-        c.fillStyle = '#335367'; c.font = `${Math.max(8,this.cell*.59)}px Microsoft YaHei, sans-serif`;
+        c.fillStyle = art.label; c.font = `${Math.max(8,this.cell*.59)}px Microsoft YaHei, sans-serif`;
         c.textAlign='center'; c.textBaseline='middle'; c.fillText(label(i),x,y);
       });
     }
@@ -127,31 +129,31 @@ export class Map2D {
     c.lineJoin='round'; c.lineCap='round';
     for (const r of state.robots) {
       if (r.path.length < 2) continue;
-      c.strokeStyle = robotColor(r.id)+'99'; c.lineWidth = Math.max(1.4,this.cell*.13); c.beginPath();
+      c.strokeStyle = robotColor(r.id)+'cc'; c.lineWidth = Math.max(1.4,this.cell*.13); c.beginPath();
       r.path.forEach((p,i) => { const [x,y]=this.center(p); i ? c.lineTo(x,y) : c.moveTo(x,y); }); c.stroke();
     }
     if (task) {
-      for (const [p,color] of [[task.pickup,'#1684bc'],[task.delivery,'#229461']]) {
+      for (const [p,color] of [[task.pickup,art.pickupHighlight],[task.delivery,art.deliveryHighlight]]) {
         const [x,y]=this.center(p); c.strokeStyle=color; c.lineWidth=2;
         c.beginPath(); c.arc(x,y,this.cell*.53,0,Math.PI*2); c.stroke();
       }
     }
     for (const r of state.robots) {
       const [x,y]=this.center(positions[r.id]); const radius=Math.max(4,this.cell*.4);
-      c.fillStyle='#304353'; c.beginPath(); c.arc(x+.8,y+1,radius+.6,0,Math.PI*2); c.fill();
+      c.fillStyle=art.robotShadow; c.beginPath(); c.arc(x+.8,y+1,radius+.6,0,Math.PI*2); c.fill();
       c.fillStyle=robotColor(r.id); c.beginPath(); c.arc(x,y,radius,0,Math.PI*2); c.fill();
-      c.fillStyle='#183347'; c.font=`bold ${Math.max(8,this.cell*.57)}px sans-serif`; c.textAlign='center'; c.textBaseline='middle'; c.fillText(r.id,x,y);
-      if (r.loaded) { c.fillStyle='#f7e5b1'; c.fillRect(x+radius*.35,y-radius*1.25,radius*.7,radius*.65); }
-      if (r.urgent) { c.strokeStyle='#d85167'; c.lineWidth=1.7; c.beginPath(); c.arc(x,y,radius+2,0,Math.PI*2); c.stroke(); }
+      c.fillStyle=art.robotInk; c.font=`bold ${Math.max(8,this.cell*.57)}px sans-serif`; c.textAlign='center'; c.textBaseline='middle'; c.fillText(r.id,x,y);
+      if (r.loaded) { c.fillStyle=art.cargo; c.fillRect(x+radius*.35,y-radius*1.25,radius*.7,radius*.65); }
+      if (r.urgent) { c.strokeStyle=art.urgent; c.lineWidth=1.7; c.beginPath(); c.arc(x,y,radius+2,0,Math.PI*2); c.stroke(); }
     }
     if (task) {
       const [x,y] = this.center(task.pickup); const size=Math.max(10,this.cell*.65);
       c.font=`${size}px Microsoft YaHei,sans-serif`; const width=size+5, height=size+4;
-      c.fillStyle='#f5fafc'; c.fillRect(x-width/2,y-this.cell*.6-height,width,height);
-      c.strokeStyle='#1684bc'; c.lineWidth=1; c.strokeRect(x-width/2,y-this.cell*.6-height,width,height);
-      c.fillStyle='#1684bc'; c.textAlign='center'; c.textBaseline='middle'; c.fillText('取',x,y-this.cell*.6-height/2);
+      c.fillStyle=art.labelBg; c.fillRect(x-width/2,y-this.cell*.6-height,width,height);
+      c.strokeStyle=art.pickupHighlight; c.lineWidth=1; c.strokeRect(x-width/2,y-this.cell*.6-height,width,height);
+      c.fillStyle=art.pickupHighlight; c.textAlign='center'; c.textBaseline='middle'; c.fillText('取',x,y-this.cell*.6-height/2);
       const [dx,dy]=this.center(task.delivery);
-      c.fillStyle='#229461'; c.fillText('送',dx,dy-this.cell*.95);
+      c.fillStyle=art.deliveryHighlight; c.fillText('送',dx,dy-this.cell*.95);
     }
     this.canvas.dataset.tick = state.tick;
   }

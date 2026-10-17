@@ -1,0 +1,81 @@
+{
+  "ok": true,
+  "checks": [
+    "ICO 16px frame valid",
+    "ICO 20px frame valid",
+    "ICO 24px frame valid",
+    "ICO 32px frame valid",
+    "ICO 40px frame valid",
+    "ICO 48px frame valid",
+    "ICO 64px frame valid",
+    "ICO 128px frame valid",
+    "ICO 256px frame valid",
+    "ICO contains all nine intended sizes",
+    "native icon contains only the AW glyph paths",
+    "process AppID set before native windows are shown",
+    "main: custom icon pixels match ICO",
+    "main: Windows small and large icon handles assigned",
+    "main: titlebar icon and taskbar participation enabled",
+    "debug: custom icon pixels match ICO",
+    "debug: Windows small and large icon handles assigned",
+    "debug: titlebar icon and taskbar participation enabled",
+    "debug-reopened: custom icon pixels match ICO",
+    "debug-reopened: Windows small and large icon handles assigned",
+    "debug-reopened: titlebar icon and taskbar participation enabled",
+    "taskbar identity preserved after debug window recreation"
+  ],
+  "windows": [
+    {
+      "label": "main",
+      "show_icon": true,
+      "show_in_taskbar": true,
+      "small_icon_handle": 13962471,
+      "large_icon_handle": 9045083,
+      "size": [
+        40,
+        40
+      ],
+      "pixels_match_ico": true
+    },
+    {
+      "label": "debug",
+      "show_icon": true,
+      "show_in_taskbar": true,
+      "small_icon_handle": 5508457,
+      "large_icon_handle": 920755,
+      "size": [
+        40,
+        40
+      ],
+      "pixels_match_ico": true
+    },
+    {
+      "label": "debug-reopened",
+      "show_icon": true,
+      "show_in_taskbar": true,
+      "small_icon_handle": 14419879,
+      "large_icon_handle": 41093779,
+      "size": [
+        40,
+        40
+      ],
+      "pixels_match_ico": true
+    }
+  ],
+  "scope": "Hidden native WinForms/WebView2 windows; actual window icon pixels, WM_GETICON handles, taskbar participation and process AppUserModelID. No real credentials, API requests or run saves. Explorer's visible taskbar button is not screen-captured.",
+  "icon_sizes": [
+    16,
+    20,
+    24,
+    32,
+    40,
+    48,
+    64,
+    128,
+    256
+  ],
+  "icon_sha256": "a3366d87d02600909db3467ea879c939266410307fc660cf622d58af90c47756",
+  "app_user_model_id": "AWCS.WarehouseCoordination.Preview",
+  "count": 22,
+  "date": "2026-10-17"
+}

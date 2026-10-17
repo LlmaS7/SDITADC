@@ -1,0 +1,76 @@
+{
+  "date": "2026-10-16",
+  "count": 24,
+  "checks": [
+    "Chinese product title visible",
+    "approved mark loaded",
+    "mark aspect ratio preserved",
+    "graphite amber artwork has white support",
+    "major workspace geometry preserved",
+    "WebGL and 2D ready",
+    "assistant uses approved shared asset",
+    "assistant keeps selected task summary",
+    "decorative marks have adjacent accessible headings",
+    "settings still open",
+    "no horizontal overflow at 1080",
+    "brand clear of counters at 1080",
+    "mark fits header at 1080",
+    "no horizontal overflow at 960",
+    "brand clear of counters at 960",
+    "mark fits header at 960",
+    "approved graphite and theme amber retained",
+    "self contained paths with no embedded bitmap",
+    "wordmark and both names are outlined",
+    "favicon served as SVG",
+    "horizontal stacked and icon PNG exports complete",
+    "debug retains its D marker and AWCS title",
+    "both visualizations synchronize after a step",
+    "no page script errors"
+  ],
+  "errors": [],
+  "regions": [
+    [
+      0,
+      0,
+      1600,
+      78
+    ],
+    [
+      0,
+      78,
+      1600,
+      56
+    ],
+    [
+      0,
+      134,
+      1600,
+      839
+    ],
+    [
+      24,
+      134,
+      1176,
+      406
+    ],
+    [
+      24,
+      556,
+      1176,
+      406
+    ],
+    [
+      1216,
+      134,
+      360,
+      827
+    ]
+  ],
+  "scope": "Approved attached AWCS AW coordinated-route artwork, vector tracing, white support, software branding and PNG exports. Isolated local mock configuration; no real API requests or user recording writes. Core algorithm suite not rerun.",
+  "sourceSHA256": "da4d18d961f3f542403ad63c4657cfeb049215efd0a2c016744345233d3f2ff6",
+  "fidelity": {
+    "inkIntersectionOverUnion": 0.9871253770686367,
+    "amberIntersectionOverUnion": 0.9601994305475786,
+    "method": "Binary ink and amber mask overlap at original 1536x1024 resolution; colors normalized, emblem paths simplified within three source pixels to remove raster edge noise, lettering within one pixel."
+  }
+}

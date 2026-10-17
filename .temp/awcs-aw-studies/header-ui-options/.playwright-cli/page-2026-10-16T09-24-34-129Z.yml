@@ -1,0 +1,118 @@
+- main [ref=e2]:
+  - heading "AWCS · 去白底的四个方向" [level=1] [ref=e3]
+  - paragraph [ref=e4]: 保留已选 AW 轮廓，比较暗色适配与标题排版。下面均为局部粗预览；点击按钮可查看在你这张截图中的整体效果。
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - generic [ref=e7]:
+        - heading "A · 无底嵌入" [level=3] [ref=e8]
+        - generic [ref=e9]: 优先推荐
+        - button "查看全界面" [ref=e10] [cursor=pointer]
+      - generic [ref=e11]:
+        - generic [ref=e12]:
+          - generic [ref=e13]:
+            - img "AWCS图形" [ref=e15]
+            - generic [ref=e16]:
+              - heading "智能仓储协同调度系统" [level=2] [ref=e17]
+              - paragraph [ref=e18]: AWCS · 仓库运行总览
+          - generic [ref=e19]:
+            - generic [ref=e20]: 运行中
+            - generic [ref=e21]: 已完成 1
+            - generic [ref=e22]: 执行中 3
+            - generic [ref=e23]: 待处理 5
+        - generic [ref=e24]:
+          - generic [ref=e25]: 暂停
+          - generic [ref=e26]: 速度
+          - generic [ref=e27]: 2×⌄
+          - generic [ref=e28]: AI 设置
+          - generic [ref=e29]: 调试窗口 ↗
+      - paragraph [ref=e30]: 去掉底板；银灰主体与琥珀路径直接融入顶栏，标题位置延续现在的习惯。
+    - generic [ref=e31]:
+      - generic [ref=e32]:
+        - heading "B · 深色铭牌" [level=3] [ref=e33]
+        - generic [ref=e34]: 保留容器感
+        - button "查看全界面" [ref=e35] [cursor=pointer]
+      - generic [ref=e36]:
+        - generic [ref=e37]:
+          - generic [ref=e38]:
+            - img "AWCS图形" [ref=e40]
+            - generic [ref=e41]:
+              - heading "智能仓储协同调度系统" [level=2] [ref=e42]
+              - paragraph [ref=e43]: AWCS · 仓库运行总览
+          - generic [ref=e44]:
+            - generic [ref=e45]: 运行中
+            - generic [ref=e46]: 已完成 1
+            - generic [ref=e47]: 执行中 3
+            - generic [ref=e48]: 待处理 5
+        - generic [ref=e49]:
+          - generic [ref=e50]: 暂停
+          - generic [ref=e51]: 速度
+          - generic [ref=e52]: 2×⌄
+          - generic [ref=e53]: AI 设置
+          - generic [ref=e54]: 调试窗口 ↗
+      - paragraph [ref=e55]: 保留深色边框，用细银灰描边勾出 AW；更偏工业控制台。
+    - generic [ref=e56]:
+      - generic [ref=e57]:
+        - heading "C · 品牌组合" [level=3] [ref=e58]
+        - generic [ref=e59]: 更完整
+        - button "查看全界面" [ref=e60] [cursor=pointer]
+      - generic [ref=e61]:
+        - generic [ref=e62]:
+          - generic [ref=e63]:
+            - img "AWCS图形" [ref=e65]
+            - generic [ref=e67]:
+              - heading "智能仓储协同调度系统" [level=2] [ref=e68]
+              - paragraph [ref=e69]: Agent-Assisted Warehouse Coordination System
+          - generic [ref=e70]:
+            - generic [ref=e71]: 运行中
+            - generic [ref=e72]: 已完成 1
+            - generic [ref=e73]: 执行中 3
+            - generic [ref=e74]: 待处理 5
+        - generic [ref=e75]:
+          - generic [ref=e76]: 暂停
+          - generic [ref=e77]: 速度
+          - generic [ref=e78]: 2×⌄
+          - generic [ref=e79]: AI 设置
+          - generic [ref=e80]: 调试窗口 ↗
+      - paragraph [ref=e81]: AW 图形与原版 AWCS 字标上下组合，以细分隔线与系统名称区分层次。
+    - generic [ref=e82]:
+      - generic [ref=e83]:
+        - heading "D · 琥珀单色" [level=3] [ref=e84]
+        - generic [ref=e85]: 更醒目
+        - button "查看全界面" [ref=e86] [cursor=pointer]
+      - generic [ref=e87]:
+        - generic [ref=e88]:
+          - generic [ref=e89]:
+            - img "AWCS图形" [ref=e91]
+            - generic [ref=e92]:
+              - heading "AWCS·智能仓储协同调度系统" [level=2] [ref=e93]
+              - paragraph [ref=e94]: 仓库运行总览 / Warehouse Overview
+          - generic [ref=e95]:
+            - generic [ref=e96]: 运行中
+            - generic [ref=e97]: 已完成 1
+            - generic [ref=e98]: 执行中 3
+            - generic [ref=e99]: 待处理 5
+        - generic [ref=e100]:
+          - generic [ref=e101]: 暂停
+          - generic [ref=e102]: 速度
+          - generic [ref=e103]: 2×⌄
+          - generic [ref=e104]: AI 设置
+          - generic [ref=e105]: 调试窗口 ↗
+      - paragraph [ref=e106]: 以主题琥珀色统一图形，路径改成深色镂空；名称与 AWCS 合成一行。
+  - generic [ref=e107]:
+    - heading "A · 无底嵌入 / 全界面预览" [level=3] [ref=e108]
+    - paragraph [ref=e109]: 背景沿用你的界面截图，仅用 HTML 覆盖顶栏；下方是对照画面。
+    - generic [ref=e110]:
+      - img "用户当前界面截图" [ref=e111]
+      - iframe [ref=e113]:
+        - banner [ref=f1e2]:
+          - generic [ref=f1e3]:
+            - img "AWCS图形" [ref=f1e5]
+            - generic [ref=f1e6]:
+              - heading "智能仓储协同调度系统" [level=2] [ref=f1e7]
+              - paragraph [ref=f1e8]: AWCS · 仓库运行总览
+          - generic [ref=f1e9]:
+            - generic [ref=f1e10]: 运行中
+            - generic [ref=f1e11]: 已完成 1
+            - generic [ref=f1e12]: 执行中 3
+            - generic [ref=f1e13]: 待处理 5
+  - paragraph [ref=e114]: 探索稿 · 2026-10-16 · 正式程序未修改。A / C 的银灰主体用深色细线分隔琥珀路径。

@@ -1,0 +1,72 @@
+{
+  "date": "2026-10-16",
+  "count": 24,
+  "checks": [
+    "Chinese product title visible",
+    "approved mark loaded",
+    "mark aspect ratio preserved",
+    "A variant has no backing plate",
+    "major workspace geometry preserved",
+    "WebGL and 2D ready",
+    "assistant uses approved shared asset",
+    "assistant keeps selected task summary",
+    "decorative marks have adjacent accessible headings",
+    "settings still open",
+    "no horizontal overflow at 1080",
+    "brand clear of counters at 1080",
+    "mark fits header at 1080",
+    "no horizontal overflow at 960",
+    "brand clear of counters at 960",
+    "mark fits header at 960",
+    "approved silver amber and dark route separators retained",
+    "self contained paths with no embedded bitmap",
+    "wordmark and both names are outlined",
+    "favicon served as SVG",
+    "transparent UI mark and dark icon PNG exports complete",
+    "debug retains its D marker and AWCS title",
+    "both visualizations synchronize after a step",
+    "no page script errors"
+  ],
+  "errors": [],
+  "regions": [
+    [
+      0,
+      0,
+      1600,
+      78
+    ],
+    [
+      0,
+      78,
+      1600,
+      56
+    ],
+    [
+      0,
+      134,
+      1600,
+      839
+    ],
+    [
+      24,
+      134,
+      1176,
+      406
+    ],
+    [
+      24,
+      556,
+      1176,
+      406
+    ],
+    [
+      1216,
+      134,
+      360,
+      827
+    ]
+  ],
+  "scope": "Approved A silver/amber mark without a backing plate, main and assistant UI, dark favicon and PNG exports. Isolated local mock configuration; no real API requests or user recording writes. Core algorithm suite not rerun.",
+  "artworkMatchesApprovedA": true,
+  "markSHA256": "89d66bd0dca673668c680c081dc05df8c1dcc6dfdd3d2579b22bf06f4c6f5cee"
+}

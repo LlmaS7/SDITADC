@@ -34,7 +34,7 @@ def graphical(args):
                             robot_count=args.robots)
     server, url = start_server(controller, args.port)
     controller.start()
-    print(f"SDITADC v{VERSION}: {url}", flush=True)
+    print(f"AWCS v{VERSION}: {url}", flush=True)
     try:
         if args.serve or args.browser:
             if args.browser:
@@ -45,7 +45,7 @@ def graphical(args):
                 sleep(.25)
         else:
             import webview
-            from desktop import DesktopWindows
+            from desktop import APP_ICON, DesktopWindows
             smoke = args.smoke_test
             windows = DesktopWindows(url, hidden=smoke)
             window = windows._main
@@ -124,7 +124,7 @@ def graphical(args):
 
             with TemporaryDirectory(prefix="sditadc-webview-", ignore_cleanup_errors=True) as profile:
                 webview.start(inspect_window, gui="edgechromium", debug=args.debug,
-                              private_mode=True, storage_path=profile)
+                              private_mode=True, storage_path=profile, icon=str(APP_ICON))
             if smoke and not (result["ok"] and result.get("shared_commands") and result.get("reopen_preserves_state")):
                 raise RuntimeError(f"独立窗口渲染检查未通过：{result}")
     except KeyboardInterrupt:
@@ -137,7 +137,7 @@ def graphical(args):
 
 
 def main():
-    parser = argparse.ArgumentParser(description="SDITADC HTML + Three.js multi-robot preview")
+    parser = argparse.ArgumentParser(description="AWCS HTML + Three.js multi-robot preview")
     parser.add_argument("--seed", type=int, default=DEFAULT_SEED)
     parser.add_argument("--map", dest="map_id", default=DEFAULT_MAP, help="Map filename stem under maps/")
     parser.add_argument("--robots", type=int, help="Robot count within the selected map's capacity")
@@ -166,7 +166,7 @@ if __name__ == "__main__":
         if sys.stderr is None:
             if "--smoke-test" not in sys.argv:
                 import ctypes
-                ctypes.windll.user32.MessageBoxW(0, "启动未完成，请查看本版本 outputs/startup_error.log。", "SDITADC", 16)
+                ctypes.windll.user32.MessageBoxW(0, "启动未完成，请查看本版本 outputs/startup_error.log。", "AWCS", 16)
             sys.exit(1)
         raise
 

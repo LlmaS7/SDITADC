@@ -3,13 +3,15 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>SDITADC · v0.3 · 仓库业务助手</title>
+  <title>AWCS · 智能仓储协同调度系统</title>
   <link rel="stylesheet" href="./styles.css">
+  <link rel="stylesheet" href="./theme.css">
+  <link rel="icon" type="image/svg+xml" href="./assets/logo-icon.svg">
   <script type="importmap">{"imports":{"three":"./vendor/three.module.js"}}</script>
 </head>
 <body class="main-page">
   <header class="topbar">
-    <div class="brand"><span class="brand-mark">S</span><div><h1>多机仓库协作</h1><p>SDITADC · 仓库运行总览</p></div></div>
+    <div class="brand" title="Agent-Assisted Warehouse Coordination System"><span class="brand-mark awcs-mark" aria-hidden="true"><img src="./assets/logo-mark.svg" width="108" height="37" alt=""></span><div><h1>智能仓储协同调度系统</h1><p>AWCS · 仓库运行总览</p></div></div>
     <div class="header-stats"><span id="connection" class="badge">正在连接</span><span>已完成 <strong id="overview-completed">0</strong></span><span>执行中 <strong id="overview-running">0</strong></span><span>待处理 <strong id="overview-pending">0</strong></span></div>
   </header>
   <nav class="toolbar" aria-label="仿真控制">
@@ -40,8 +42,15 @@
       </div>
       <section id="chat-content" class="sidebar-content" role="tabpanel" aria-labelledby="tab-chat" hidden>
         <div class="chat-heading"><div><h2>仓库业务助手</h2><p id="ai-status" class="subtle">尚未配置</p></div><button id="chat-clear" class="text-button">清空对话</button></div>
-        <div id="chat-messages" class="chat-messages" aria-live="polite"><div class="chat-welcome"><span class="assistant-mark">S</span><h3>用一句话安排搬运</h3><p>查询任务、创建取送任务、调整优先级、取消任务，也可指定机器人、设置偏好或复制任务。</p><p class="subtle">例如：将四号货架的货物送到二号配送点，设为紧急。</p><button id="chat-configure" class="small">配置 AI</button></div></div>
-        <div class="chat-compose"><div class="chat-context"><span id="chat-association">未关联任务</span><button id="chat-unlink" class="text-button">清除关联</button></div><textarea id="chat-input" rows="3" maxlength="6000" placeholder="输入业务需求…" aria-label="业务消息"></textarea><div class="chat-compose-actions"><span class="subtle">Enter 发送 · Shift+Enter 换行</span><button id="chat-stop" class="small" disabled>停止回复</button><button id="chat-send" class="primary" disabled>发送</button></div><p class="chat-footnote">已执行的操作不会因停止回复而撤销。</p></div>
+        <div id="chat-messages" class="chat-messages" aria-live="polite"><div class="chat-welcome"><span class="assistant-mark awcs-mark" aria-hidden="true"><img src="./assets/logo-mark.svg" width="108" height="37" alt=""></span><h3>用一句话安排搬运</h3><p>查询任务、创建取送任务、调整优先级、取消任务，也可指定机器人、设置偏好或复制任务。</p><p class="subtle">例如：将四号货架的货物送到二号配送点，设为紧急。</p><button id="chat-configure" class="small">配置 AI</button></div></div>
+        <div class="chat-compose">
+          <section class="chat-context" aria-label="当前关联任务">
+            <div class="chat-context-heading"><span id="chat-association">未关联任务</span><button id="chat-unlink" class="text-button">清除关联</button></div>
+            <div id="chat-task-summary" role="status" aria-atomic="true" aria-labelledby="chat-association" hidden><div class="chat-task-heading"><strong id="chat-task-status"></strong><span id="chat-task-priority" class="priority-tag"></span></div><p id="chat-task-route" class="chat-task-route"></p><p id="chat-task-meta" class="chat-task-meta"></p></div>
+            <p id="chat-task-empty" class="chat-task-empty">从任务列表选择任务，在此查看实时情况。</p>
+          </section>
+          <textarea id="chat-input" rows="3" maxlength="6000" placeholder="输入业务需求…" aria-label="业务消息"></textarea><div class="chat-compose-actions"><span class="subtle">Enter 发送 · Shift+Enter 换行</span><button id="chat-stop" class="small" disabled>停止回复</button><button id="chat-send" class="primary" disabled>发送</button></div><p class="chat-footnote">已执行的操作不会因停止回复而撤销。</p>
+        </div>
       </section>
     </aside>
   </main>

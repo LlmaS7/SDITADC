@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-16",
+  "purpose": "AWCS selected AW shared-stroke monogram: path planning explorations",
+  "source": "../awcs-brand-references/10-militech.png",
+  "productionModified": false,
+  "palette": {
+    "graphite": "#24292e",
+    "amber": "#e6b568",
+    "background": "#ffffff"
+  },
+  "generator": "Built-in imagegen; bitmap concept explorations",
+  "variants": [
+    {
+      "id": "01-shared-stroke",
+      "name": "共用笔画",
+      "detail": "A与W共享一条斜边，优先保证字母可读。",
+      "prompt": "Create a new high-end flat industrial brand logo exploration for AWCS, Agent-Assisted Warehouse Coordination System. The attached image is STYLE REFERENCE ONLY: take its thick oblique interlocking bands, chamfered terminals, machine stencil cuts and confident industrial identity, but redesign the emblem so it clearly depicts the letters A and W. This is an original AW identity, not a copy of any fictional company's insignia. Standard flat white background #ffffff. Only two ink colors: graphite #24292e and warm amber #e6b568, matching the existing application; clean hard edges, no texture, no gradient, no glow, no bevel, no 3D, no mockup, no shadows, no extra symbols, no enclosure. Landscape canvas about 3:2 with generous white space. A single large centered AW monogram fills the upper 65%; below it in a clean typographic lockup print exactly 'AWCS', below that exactly '智能仓储协同调度系统', and a small final line exactly 'Agent-Assisted Warehouse Coordination System'. Lettering black graphite, restrained sans-serif, expertly spaced. Only one proposal per image, no multi-panel grids, no explanatory labels. The capital A and capital W within the graphical monogram must be individually identifiable without looking at the AWCS caption. Design a wide, bold AW ligature: an unmistakable capital A on the left with a generous triangular counter and one amber crossbar; its right diagonal is also the first strong descending stroke of the W. The W must have two distinct downstrokes, two bottom vertices and a central rising peak. Build a single coherent closely joined AW silhouette with one shared diagonal. Broad dark graphite primary strokes, amber crossbar plus one restrained inner amber slash. Forward leaning engineered geometry, asymmetric chamfered terminals and just two precise stencil cuts. The complete logo must immediately read AW, not AV, AA, MW, arrows or a mountain.",
+      "source": "E:\\_PROJECTS\\SDITADC\\.temp\\awcs-brand-references\\10-militech.png",
+      "generatedSource": "C:\\Users\\25489\\.codex\\generated_images\\01a1262c-fcaf-74b1-9bc9-16b9407065c1\\exec-fc06f082-fd03-4e9b-bde3-98df64b42166.png",
+      "file": "01-shared-stroke.png"
+    },
+    {
+      "id": "02-route-channel",
+      "name": "连通路线",
+      "detail": "将一条连续规划路线嵌入AW笔画，以起终点强调移动方向。",
+      "prompt": "EDIT the provided selected AWCS logo proposal, using it as the actual design base. Preserve its recognizable thick, forward-slanted AW monogram with the shared diagonal; retain the graphite #24292e, amber #e6b568 and white background palette, chamfered industrial terminals, strong weight, and the existing large emblem over three-line naming lockup. Preserve every caption exactly as in the reference: 'AWCS', '智能仓储协同调度系统', 'Agent-Assisted Warehouse Coordination System'. Keep the white landscape 3:2 composition and label positioning. Modify only the graphical AW emblem to communicate PATH PLANNING for a multi-robot warehouse coordination system. The A and W must remain unmistakably recognizable and very close to the chosen silhouette. Make the routing motif structural and integral, not a separate icon pasted next to the letters. Flat clean logo presentation, no textures, no gloss, no shadows, no bevel, no gradient, no 3D, no extra captions, no engineering annotation, no map background. Keep the result robust as a compact emblem. ONE edited proposal per image. Specific direction: Embed ONE clearly traceable warm amber planned route into the thick AW letter strokes. It starts from a small filled square waypoint near the lower-left foot of A, makes two clean purposeful angular turns through the A crossbar and shared diagonal, then follows the inner W valley towards a small outlined square goal near the top-right terminal of W. Use a consistent moderate-width amber stripe inset within the graphite strokes with dark clearance around it; the route itself must be continuous and logically traceable, not a few disconnected amber accents. Preserve a very clear A triangular counter and W double valley. Selectively open the old stencil gaps only where needed for a real connected route. This should communicate a planned start-to-goal trajectory, while still looking like an elegant strong AW industrial monogram, not a circuit board or a road map. Two endpoint symbols only, no arrowheads.",
+      "source": "E:\\_PROJECTS\\SDITADC\\.temp\\awcs-aw-studies\\01-shared-stroke.png",
+      "generatedSource": "C:\\Users\\25489\\.codex\\generated_images\\01a1262c-fcaf-74b1-9bc9-16b9407065c1\\exec-36dc3d8f-59d8-4e63-9c0b-d6c6b77097d1.png",
+      "file": "02-route-channel.png"
+    },
+    {
+      "id": "03-obstacle-detour",
+      "name": "绕障折线",
+      "detail": "通过可见的障碍与折线路径，强调规划而非单纯装饰线。",
+      "prompt": "EDIT the provided selected AWCS logo proposal, using it as the actual design base. Preserve its recognizable thick, forward-slanted AW monogram with the shared diagonal; retain the graphite #24292e, amber #e6b568 and white background palette, chamfered industrial terminals, strong weight, and the existing large emblem over three-line naming lockup. Preserve every caption exactly as in the reference: 'AWCS', '智能仓储协同调度系统', 'Agent-Assisted Warehouse Coordination System'. Keep the white landscape 3:2 composition and label positioning. Modify only the graphical AW emblem to communicate PATH PLANNING for a multi-robot warehouse coordination system. The A and W must remain unmistakably recognizable and very close to the chosen silhouette. Make the routing motif structural and integral, not a separate icon pasted next to the letters. Flat clean logo presentation, no textures, no gloss, no shadows, no bevel, no gradient, no 3D, no extra captions, no engineering annotation, no map background. Keep the result robust as a compact emblem. ONE edited proposal per image. Specific direction: Express obstacle-avoiding path planning within the A crossbar / the central negative-space corridor of the AW monogram. Integrate a small simple graphite rectangular obstacle into an otherwise clear passage; a warm amber constant-width route makes a visibly intentional squared dogleg around that obstacle and reconnects towards the W. The obstacle must have generous clearance, not sit on the line. Show one understated filled start square and one hollow goal square at the route's two ends. The path should replace and extend the reference's amber A crossbar accent into the central shared stroke, rather than float outside the emblem. Preserve the AW primary silhouette, clear A counter and legible W. The image should instantly read AW first, then reveal an intelligently routed detour. Two or three neat turns, no background grid, no labyrinth, no warehouse drawing, no arrows.",
+      "source": "E:\\_PROJECTS\\SDITADC\\.temp\\awcs-aw-studies\\01-shared-stroke.png",
+      "generatedSource": "C:\\Users\\25489\\.codex\\generated_images\\01a1262c-fcaf-74b1-9bc9-16b9407065c1\\exec-ad224838-022a-4253-a6d9-0b33b7924644.png",
+      "file": "03-obstacle-detour.png"
+    },
+    {
+      "id": "04-coordinated-routes",
+      "name": "协同路径",
+      "detail": "用错位通过的路线表现多机协同，保留单一琥珀色。",
+      "prompt": "EDIT the provided selected AWCS logo proposal, using it as the actual design base. Preserve its recognizable thick, forward-slanted AW monogram with the shared diagonal; retain the graphite #24292e, amber #e6b568 and white background palette, chamfered industrial terminals, strong weight, and the existing large emblem over three-line naming lockup. Preserve every caption exactly as in the reference: 'AWCS', '智能仓储协同调度系统', 'Agent-Assisted Warehouse Coordination System'. Keep the white landscape 3:2 composition and label positioning. Modify only the graphical AW emblem to communicate PATH PLANNING for a multi-robot warehouse coordination system. The A and W must remain unmistakably recognizable and very close to the chosen silhouette. Make the routing motif structural and integral, not a separate icon pasted next to the letters. Flat clean logo presentation, no textures, no gloss, no shadows, no bevel, no gradient, no 3D, no extra captions, no engineering annotation, no map background. Keep the result robust as a compact emblem. ONE edited proposal per image. Specific direction: Communicate coordinated multi-robot route planning using THREE restrained warm amber paths built into the shared diagonal and inner channel of the AW monogram. The paths approach on three small staggered geometric waypoint squares, travel as clean parallel offset trajectories through the central bottleneck, and separate into the two W arms with purposeful doglegs and no chaotic crossings. Maintain a dark graphite clearance between the three amber lines so they read as three coordinated routes, not a solid amber band. Use the same amber for all three, not robot rainbow colors. Keep the reference's A silhouette, amber crossbar character, large triangular counter, bold W double valley and original industrial forward slant. A maximum of three route nodes, a compact integrated routing motif not a separate network illustration. No circuit-board connectors, no arrows, no enclosing frame.",
+      "source": "E:\\_PROJECTS\\SDITADC\\.temp\\awcs-aw-studies\\01-shared-stroke.png",
+      "generatedSource": "C:\\Users\\25489\\.codex\\generated_images\\01a1262c-fcaf-74b1-9bc9-16b9407065c1\\exec-d8564e00-0f89-4aa2-be67-70057daf50a6.png",
+      "file": "04-coordinated-routes.png"
+    }
+  ],
+  "selectedSourceSHA256": "8E09C8F35C60FA639BE2DEC4B200CA63FA728775FA5C1350A073E38068D9442F",
+  "removedPreviousVariants": [
+    "02-interlock.png",
+    "03-compact-emblem.png",
+    "04-stencil-wordmark.png"
+  ]
+}

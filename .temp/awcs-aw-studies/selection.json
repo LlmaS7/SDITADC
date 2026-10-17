@@ -1,0 +1,24 @@
+{
+  "date": "2026-10-16",
+  "selectedBy": "User attached image in current chat",
+  "source": "C:/Users/25489/AppData/Local/Temp/codex-clipboard-9eb1911f-7bc3-4109-9cbc-29a3fc37c604.png",
+  "archived": "05-selected-awcs.png",
+  "sha256": "da4d18d961f3f542403ad63c4657cfeb049215efd0a2c016744345233d3f2ff6",
+  "production": "project/v0.3_preview/frontend/assets",
+  "method": "Pixel contour tracing into SVG paths, including original lettering; no image regeneration",
+  "colors": {
+    "amber": "#e6b568",
+    "support": "#ffffff",
+    "graphite": "#24292e"
+  },
+  "layout": "A: transparent 112x46 region, 108x37 silver/amber mark, title on the right with 15px gap",
+  "productionModified": true,
+  "uiVariant": "A · 无底嵌入",
+  "uiVariantSource": "header-ui-options/mark-a.svg",
+  "uiColors": {
+    "amber": "#e6b568",
+    "routeSeparator": "#1c2024",
+    "background": "transparent",
+    "silver": "#aeb7be"
+  }
+}

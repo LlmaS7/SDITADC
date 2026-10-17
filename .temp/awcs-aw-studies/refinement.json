@@ -1,0 +1,15 @@
+{
+  "source": "E:\\_PROJECTS\\SDITADC\\.temp\\awcs-aw-studies\\04-coordinated-routes.png",
+  "sketch": "C:\\Users\\25489\\AppData\\Local\\Temp\\codex-clipboard-5d8143ea-0174-497b-9b12-0910a46a839a.png",
+  "destination": "E:\\_PROJECTS\\SDITADC\\.temp\\awcs-aw-studies\\04-coordinated-routes-refined.png",
+  "prompt": "Perform a precise local edit of the FIRST reference image, the clean selected AWCS logo. The SECOND reference is the user's hand-painted instruction sketch: interpret its intended geometry and placement, DO NOT reproduce the scribble texture. Preserve the first image's 1536x1024 white canvas, full AW monogram silhouette and positioning, graphite #24292e and amber #e6b568 palette, stencil gaps, A crossbar, the three amber square start nodes and ALL three descending amber routes and horizontal doglegs on the LEFT/shared diagonal EXACTLY as they are. Preserve the AWCS wordmark, Chinese name '智能仓储协同调度系统', and English line 'Agent-Assisted Warehouse Coordination System' exactly, with same font, position, sizes and spacing. Make ONLY these edits on the RIGHT side of the graphical W: (1) Completely remove the three existing amber bent/descending/ascending paths on the middle descending stroke of W and restore that middle descending stroke to plain solid graphite. (2) On the far-right ASCENDING diagonal stroke of W, draw EXACTLY THREE perfectly clean, straight, evenly spaced parallel amber route lines rising from lower-left toward upper-right, aligned with that stroke's diagonal and contained INSIDE its graphite silhouette, with sufficient dark margins. They should extend from close to the lower baseline to just below the existing white horizontal stencil break near the top. No horizontal jogs, no elbows and no leftover amber on the middle stroke. Match the width and color of the existing three LEFT route lines. The user has sketched the intended three rising lines on this exact right stroke. (3) Recolor the entire isolated top-right parallelogram terminal cap ABOVE that white stencil break to solid warm amber; preserve its original chamfered polygon outline, shape, size and location, and preserve the clean WHITE GAP separating it from the dark rising stroke below. Remove all handwritten annotation and cleanup marks, making crisp professional flat logo edges. There must be only the original three square nodes on the LEFT, no added right-side nodes or symbols, no extra text, no background pattern, no shading or redesign. The result is the SAME logo with just these narrowly specified right-side changes.",
+  "generatedSource": "C:\\Users\\25489\\.codex\\generated_images\\01a1262c-fcaf-74b1-9bc9-16b9407065c1\\exec-6158d004-4c16-46fa-af80-d357f1540af9.png",
+  "date": "2026-10-16",
+  "changes": [
+    "Preserve the three left routes and nodes",
+    "Clear paths from the middle descending W stroke",
+    "Three straight parallel amber paths on the right ascending stroke",
+    "Amber isolated top-right terminal cap; preserve white gap"
+  ],
+  "productionModified": false
+}

@@ -180,7 +180,16 @@ input{font:inherit;border:1px solid var(--line);border-radius:6px;background:#24
 .task-link{color:var(--blue);margin-left:5px}
 .result-error{color:#ffabb4;line-height:1.7;font-size:11px;margin-top:7px;overflow-wrap:anywhere}
 .chat-compose{padding:12px;border-top:1px solid var(--line);flex-shrink:0}
-.chat-context{display:flex;justify-content:space-between;align-items:center;font-size:11px;color:var(--muted);margin-bottom:7px}
+.chat-context{font-size:12px;color:var(--muted);margin-bottom:9px;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--raised)}
+.chat-context-heading,.chat-task-heading{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.chat-context-heading>span{color:var(--blue);font-weight:500}
+.chat-context-heading .text-button{flex-shrink:0}
+.chat-task-heading{margin-top:7px}
+.chat-task-heading strong{font-size:12px;font-weight:500;color:var(--text)}
+.chat-task-heading .priority-tag{margin-left:0;flex-shrink:0}
+.chat-task-route,.chat-task-meta,.chat-task-empty{margin-top:5px;line-height:1.6;overflow-wrap:anywhere}
+.chat-task-route{color:var(--text)}
+.chat-task-meta,.chat-task-empty{font-size:11px}
 textarea{resize:vertical;min-height:75px;max-height:170px;width:100%;font:12px 'Microsoft YaHei',sans-serif;line-height:1.7;color:var(--text);background:#101c25;border:1px solid #415766;border-radius:8px;padding:10px}
 textarea:focus,input:focus{outline:1px solid var(--accent);border-color:var(--accent)}
 .chat-compose-actions{display:flex;align-items:center;justify-content:flex-end;gap:7px;margin-top:8px}

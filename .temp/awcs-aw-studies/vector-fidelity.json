@@ -1,0 +1,5 @@
+{
+  "inkIntersectionOverUnion": 0.9871253770686367,
+  "amberIntersectionOverUnion": 0.9601994305475786,
+  "method": "Binary ink and amber mask overlap at original 1536x1024 resolution; colors normalized, emblem paths simplified within three source pixels to remove raster edge noise, lettering within one pixel."
+}

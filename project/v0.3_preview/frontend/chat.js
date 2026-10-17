@@ -13,7 +13,24 @@ export class Chat {
   }
   configure(v){this.ready=v.has_key&&!!v.model;$('ai-status').textContent=v.has_key?(v.model?`${v.model} · ${v.verified?'已验证':'未验证'}`:'请选择模型'):'先配置 DeepSeek，即可使用';this.controls();}
   controls(){$('chat-send').disabled=this.busy||this.submitting||!this.ready||!this.state()||!$('chat-input').value.trim();$('chat-stop').disabled=!this.busy;}
-  updateAssociation(){const id=this.selected();$('chat-association').textContent=id?`当前关联：T${String(id).padStart(3,'0')}`:'未关联任务';$('chat-unlink').disabled=!id;this.controls();}
+  updateAssociation(){
+    const state=this.state(),task=state?.tasks.find(t=>t.id===this.selected());
+    const signature=JSON.stringify([state?.generation,task?[task.id,task.status,task.label,task.priority,task.pickup_number,task.delivery_number,task.robot_id,task.assignment_mode,task.assignment_robot_id]:null]);
+    if(signature!==this.associationSignature){
+      this.associationSignature=signature;
+      $('chat-association').textContent=task?`当前关联：T${String(task.id).padStart(3,'0')}`:'未关联任务';
+      $('chat-unlink').disabled=!task;
+      $('chat-task-summary').hidden=!task;$('chat-task-empty').hidden=!!task;
+      $('chat-task-status').textContent=task?.label||'';
+      $('chat-task-priority').textContent=task?(task.priority===5?'紧急 · 5级':`等级 ${task.priority}`):'';
+      $('chat-task-priority').classList.toggle('urgent',task?.priority===5);
+      $('chat-task-route').textContent=task?`取货点 ${String(task.pickup_number).padStart(2,'0')} → 配送点 D${task.delivery_number}`:'';
+      const owner=task?.robot_id?`${task.status==='reserved'?'预约接手':task.status==='completed'?'完成机器人':'执行机器人'}：R${task.robot_id}`:'尚未分配机器人';
+      const policy=task?.assignment_mode==='forced'?`人工指定 R${task.assignment_robot_id}`:task?.assignment_mode==='preferred'?`优先使用 R${task.assignment_robot_id}`:'自动分配';
+      $('chat-task-meta').textContent=task?`${owner} · ${policy}`:'';
+    }
+    this.controls();
+  }
   append(className,text){const p=document.createElement('div');p.className=className;p.textContent=text;$('chat-messages').append(p);return p;}
   notice(text){this.append('chat-notice',text);}
   async send(){const state=this.state();if(!state||this.busy||this.submitting)return;const text=$('chat-input').value.trim();if(!text)return;this.busy=true;this.submitting=true;this.controls();try{await api('messages',{text,task_id:this.selected(),generation:state.generation});if($('chat-input').value.trim()===text)$('chat-input').value='';}catch(e){this.busy=false;this.notice(e.message);}finally{this.submitting=false;this.controls();}}

@@ -1,0 +1,641 @@
+[
+  {
+    "slide": 2,
+    "name": "v2-13",
+    "paragraphCount": 1,
+    "lineCount": 2,
+    "expectedLines": 2,
+    "lines": [
+      {
+        "index": 0,
+        "beforeTop": 206.25,
+        "afterTop": 203.25,
+        "beforeLeft": 49.5,
+        "afterLeft": 49.5,
+        "beforeText": "全球治理可以理解为：各国通过国际组织、共同规则与合作行动，",
+        "afterText": "全球治理可以理解为：各国通过国际组织、共同规则与合作行动，\u000b"
+      },
+      {
+        "index": 1,
+        "beforeTop": 235.5,
+        "afterTop": 232.25,
+        "beforeLeft": 49.5,
+        "afterLeft": 49.5,
+        "beforeText": "协调跨国问题，回应共同利益，并在协商中明确权利与责任。",
+        "afterText": "协调跨国问题，回应共同利益，并在协商中明确权利与责任。"
+      }
+    ]
+  },
+  {
+    "slide": 2,
+    "name": "v2-17",
+    "paragraphCount": 1,
+    "lineCount": 3,
+    "expectedLines": 3,
+    "lines": [
+      {
+        "index": 0,
+        "beforeTop": 356.25,
+        "afterTop": 352.5,
+        "beforeLeft": 49.5,
+        "afterLeft": 49.5,
+        "beforeText": "排放与气候风险跨越国界，单一国家的行动",
+        "afterText": "排放与气候风险跨越国界，单一国家的行动\u000b"
+      },
+      {
+        "index": 1,
+        "beforeTop": 384.0,
+        "afterTop": 380.5,
+        "beforeLeft": 49.5,
+        "afterLeft": 49.5,
+        "beforeText": "需要与国际合作衔接。不同国家的脆弱处境，",
+        "afterText": "需要与国际合作衔接。不同国家的脆弱处境，\u000b"
+      },
+      {
+        "index": 2,
+        "beforeTop": 411.75,
+        "afterTop": 408.5,
+        "beforeLeft": 49.5,
+        "afterLeft": 49.5,
+        "beforeText": "也应进入议题与方案的形成过程。",
+        "afterText": "也应进入议题与方案的形成过程。"
+      }
+    ]
+  },
+  {
+    "slide": 2,
+    "name": "v2-21",
+    "paragraphCount": 1,
+    "lineCount": 3,
+    "expectedLines": 3,
+    "lines": [
+      {
+        "index": 0,
+        "beforeTop": 356.25,
+        "afterTop": 352.5,
+        "beforeLeft": 499.5,
+        "afterLeft": 499.5,
+        "beforeText": "技术发展关联各国的发展机会与安全关切。",
+        "afterText": "技术发展关联各国的发展机会与安全关切。\u000b"
+      },
+      {
+        "index": 1,
+        "beforeTop": 384.0,
+        "afterTop": 380.5,
+        "beforeLeft": 499.5,
+        "afterLeft": 499.5,
+        "beforeText": "规则讨论需要更广泛的参与，也需要支持",
+        "afterText": "规则讨论需要更广泛的参与，也需要支持\u000b"
+      },
+      {
+        "index": 2,
+        "beforeTop": 411.75,
+        "afterTop": 408.5,
+        "beforeLeft": 499.5,
+        "afterLeft": 499.5,
+        "beforeText": "发展中国家提升专业与技术能力。",
+        "afterText": "发展中国家提升专业与技术能力。"
+      }
+    ]
+  },
+  {
+    "slide": 3,
+    "name": "v2-34",
+    "paragraphCount": 1,
+    "lineCount": 3,
+    "expectedLines": 3,
+    "lines": [
+      {
+        "index": 0,
+        "beforeTop": 357.75,
+        "afterTop": 354.75,
+        "beforeLeft": 50.25,
+        "afterLeft": 50.25,
+        "beforeText": "各国的国土、人口与经济规模可以不同，",
+        "afterText": "各国的国土、人口与经济规模可以不同，\u000b"
+      },
+      {
+        "index": 1,
+        "beforeTop": 384.75,
+        "afterTop": 381.75,
+        "beforeLeft": 50.25,
+        "afterLeft": 50.25,
+        "beforeText": "主权与尊严都应得到尊重。各国自主选择",
+        "afterText": "主权与尊严都应得到尊重。各国自主选择\u000b"
+      },
+      {
+        "index": 2,
+        "beforeTop": 411.75,
+        "afterTop": 408.75,
+        "beforeLeft": 50.25,
+        "afterLeft": 50.25,
+        "beforeText": "社会制度与发展道路的权利同样受到尊重。",
+        "afterText": "社会制度与发展道路的权利同样受到尊重。"
+      }
+    ]
+  },
+  {
+    "slide": 3,
+    "name": "v2-38",
+    "paragraphCount": 1,
+    "lineCount": 3,
+    "expectedLines": 3,
+    "lines": [
+      {
+        "index": 0,
+        "beforeTop": 357.75,
+        "afterTop": 354.75,
+        "beforeLeft": 499.5,
+        "afterLeft": 499.5,
+        "beforeText": "各国也要尊重其他国家，履行国际义务。",
+        "afterText": "各国也要尊重其他国家，履行国际义务。\u000b"
+      },
+      {
+        "index": 1,
+        "beforeTop": 384.75,
+        "afterTop": 381.75,
+        "beforeLeft": 499.5,
+        "afterLeft": 499.5,
+        "beforeText": "平等地位为协商合作提供基础，具体责任",
+        "afterText": "平等地位为协商合作提供基础，具体责任\u000b"
+      },
+      {
+        "index": 2,
+        "beforeTop": 411.75,
+        "afterTop": 408.75,
+        "beforeLeft": 499.5,
+        "afterLeft": 499.5,
+        "beforeText": "则需要结合承诺、能力与不同国情理解。",
+        "afterText": "则需要结合承诺、能力与不同国情理解。"
+      }
+    ]
+  },
+  {
+    "slide": 4,
+    "name": "v2-52",
+    "paragraphCount": 1,
+    "lineCount": 3,
+    "expectedLines": 3,
+    "lines": [
+      {
+        "index": 0,
+        "beforeTop": 340.5,
+        "afterTop": 337.5,
+        "beforeLeft": 48.0,
+        "afterLeft": 48.0,
+        "beforeText": "各国都应有参与全球事务讨论的",
+        "afterText": "各国都应有参与全球事务讨论的\u000b"
+      },
+      {
+        "index": 1,
+        "beforeTop": 365.25,
+        "afterTop": 362.5,
+        "beforeLeft": 48.0,
+        "afterLeft": 48.0,
+        "beforeText": "机会，特别需要关注发展中国家",
+        "afterText": "机会，特别需要关注发展中国家\u000b"
+      },
+      {
+        "index": 2,
+        "beforeTop": 390.0,
+        "afterTop": 387.5,
+        "beforeLeft": 48.0,
+        "afterLeft": 48.0,
+        "beforeText": "和脆弱国家的实际处境。",
+        "afterText": "和脆弱国家的实际处境。"
+      }
+    ]
+  },
+  {
+    "slide": 4,
+    "name": "v2-55",
+    "paragraphCount": 1,
+    "lineCount": 2,
+    "expectedLines": 2,
+    "lines": [
+      {
+        "index": 0,
+        "beforeTop": 432.75,
+        "afterTop": 431.25,
+        "beforeLeft": 48.0,
+        "afterLeft": 48.0,
+        "beforeText": "例如：气候讨论应听到",
+        "afterText": "例如：气候讨论应听到\u000b"
+      },
+      {
+        "index": 1,
+        "beforeTop": 453.75,
+        "afterTop": 452.25,
+        "beforeLeft": 48.0,
+        "afterLeft": 48.0,
+        "beforeText": "小岛国对海平面上升的关切。",
+        "afterText": "小岛国对海平面上升的关切。"
+      }
+    ]
+  },
+  {
+    "slide": 4,
+    "name": "v2-61",
+    "paragraphCount": 1,
+    "lineCount": 3,
+    "expectedLines": 3,
+    "lines": [
+      {
+        "index": 0,
+        "beforeTop": 340.5,
+        "afterTop": 337.5,
+        "beforeLeft": 343.5,
+        "afterLeft": 343.5,
+        "beforeText": "各国的合理关切应得到尊重，",
+        "afterText": "各国的合理关切应得到尊重，\u000b"
+      },
+      {
+        "index": 1,
+        "beforeTop": 365.25,
+        "afterTop": 362.5,
+        "beforeLeft": 343.5,
+        "afterLeft": 343.5,
+        "beforeText": "在议题设置与方案设计中形成",
+        "afterText": "在议题设置与方案设计中形成\u000b"
+      },
+      {
+        "index": 2,
+        "beforeTop": 390.0,
+        "afterTop": 387.5,
+        "beforeLeft": 343.5,
+        "afterLeft": 343.5,
+        "beforeText": "更充分的协商和更广泛的认同。",
+        "afterText": "更充分的协商和更广泛的认同。"
+      }
+    ]
+  },
+  {
+    "slide": 4,
+    "name": "v2-64",
+    "paragraphCount": 1,
+    "lineCount": 2,
+    "expectedLines": 2,
+    "lines": [
+      {
+        "index": 0,
+        "beforeTop": 432.75,
+        "afterTop": 431.25,
+        "beforeLeft": 343.5,
+        "afterLeft": 343.5,
+        "beforeText": "例如：人工智能规则讨论",
+        "afterText": "例如：人工智能规则讨论\u000b"
+      },
+      {
+        "index": 1,
+        "beforeTop": 453.75,
+        "afterTop": 452.25,
+        "beforeLeft": 343.5,
+        "afterLeft": 343.5,
+        "beforeText": "也应纳入发展中国家的需要。",
+        "afterText": "也应纳入发展中国家的需要。"
+      }
+    ]
+  },
+  {
+    "slide": 4,
+    "name": "v2-70",
+    "paragraphCount": 1,
+    "lineCount": 3,
+    "expectedLines": 3,
+    "lines": [
+      {
+        "index": 0,
+        "beforeTop": 340.5,
+        "afterTop": 337.5,
+        "beforeLeft": 639.0,
+        "afterLeft": 639.0,
+        "beforeText": "合作需要回应不同国家人民的",
+        "afterText": "合作需要回应不同国家人民的\u000b"
+      },
+      {
+        "index": 1,
+        "beforeTop": 365.25,
+        "afterTop": 362.5,
+        "beforeLeft": 639.0,
+        "afterLeft": 639.0,
+        "beforeText": "生活与发展需要，持续关注",
+        "afterText": "生活与发展需要，持续关注\u000b"
+      },
+      {
+        "index": 2,
+        "beforeTop": 390.0,
+        "afterTop": 387.5,
+        "beforeLeft": 639.0,
+        "afterLeft": 639.0,
+        "beforeText": "成果能否普惠、运行能否持续。",
+        "afterText": "成果能否普惠、运行能否持续。"
+      }
+    ]
+  },
+  {
+    "slide": 4,
+    "name": "v2-73",
+    "paragraphCount": 1,
+    "lineCount": 2,
+    "expectedLines": 2,
+    "lines": [
+      {
+        "index": 0,
+        "beforeTop": 432.75,
+        "afterTop": 431.25,
+        "beforeLeft": 639.0,
+        "afterLeft": 639.0,
+        "beforeText": "例如：能力建设项目需要",
+        "afterText": "例如：能力建设项目需要\u000b"
+      },
+      {
+        "index": 1,
+        "beforeTop": 453.75,
+        "afterTop": 452.25,
+        "beforeLeft": 639.0,
+        "afterLeft": 639.0,
+        "beforeText": "重视本地人才和公共服务。",
+        "afterText": "重视本地人才和公共服务。"
+      }
+    ]
+  },
+  {
+    "slide": 5,
+    "name": "v2-84",
+    "paragraphCount": 1,
+    "lineCount": 4,
+    "expectedLines": 4,
+    "lines": [
+      {
+        "index": 0,
+        "beforeTop": 295.5,
+        "afterTop": 291.75,
+        "beforeLeft": 50.25,
+        "afterLeft": 50.25,
+        "beforeText": "能否进入讨论、提出议题，合理关切能否",
+        "afterText": "能否进入讨论、提出议题，合理关切能否\u000b"
+      },
+      {
+        "index": 1,
+        "beforeTop": 323.25,
+        "afterTop": 319.75,
+        "beforeLeft": 50.25,
+        "afterLeft": 50.25,
+        "beforeText": "得到回应，关系到参与的实际程度。",
+        "afterText": "得到回应，关系到参与的实际程度。\u000b"
+      },
+      {
+        "index": 2,
+        "beforeTop": 351.0,
+        "afterTop": 347.75,
+        "beforeLeft": 50.25,
+        "afterLeft": 50.25,
+        "beforeText": "提升发展中国家的代表性，需要关注其",
+        "afterText": "提升发展中国家的代表性，需要关注其\u000b"
+      },
+      {
+        "index": 3,
+        "beforeTop": 378.75,
+        "afterTop": 375.75,
+        "beforeLeft": 50.25,
+        "afterLeft": 50.25,
+        "beforeText": "意见能否进入规则与方案的形成过程。",
+        "afterText": "意见能否进入规则与方案的形成过程。"
+      }
+    ]
+  },
+  {
+    "slide": 5,
+    "name": "v2-90",
+    "paragraphCount": 1,
+    "lineCount": 4,
+    "expectedLines": 4,
+    "lines": [
+      {
+        "index": 0,
+        "beforeTop": 295.5,
+        "afterTop": 291.75,
+        "beforeLeft": 499.5,
+        "afterLeft": 499.5,
+        "beforeText": "获取信息、理解复杂规则、组织专业团队，",
+        "afterText": "获取信息、理解复杂规则、组织专业团队，\u000b"
+      },
+      {
+        "index": 1,
+        "beforeTop": 323.25,
+        "afterTop": 319.75,
+        "beforeLeft": 499.5,
+        "afterLeft": 499.5,
+        "beforeText": "都需要资源与长期投入。",
+        "afterText": "都需要资源与长期投入。\u000b"
+      },
+      {
+        "index": 2,
+        "beforeTop": 351.0,
+        "afterTop": 347.75,
+        "beforeLeft": 499.5,
+        "afterLeft": 499.5,
+        "beforeText": "教育培训、技术支持和知识交流，可以",
+        "afterText": "教育培训、技术支持和知识交流，可以\u000b"
+      },
+      {
+        "index": 3,
+        "beforeTop": 378.75,
+        "afterTop": 375.75,
+        "beforeLeft": 499.5,
+        "afterLeft": 499.5,
+        "beforeText": "帮助更多国家形成持续参与的基础。",
+        "afterText": "帮助更多国家形成持续参与的基础。"
+      }
+    ]
+  },
+  {
+    "slide": 6,
+    "name": "v2-104",
+    "paragraphCount": 1,
+    "lineCount": 6,
+    "expectedLines": 6,
+    "lines": [
+      {
+        "index": 0,
+        "beforeTop": 270.0,
+        "afterTop": 266.25,
+        "beforeLeft": 49.5,
+        "afterLeft": 49.5,
+        "beforeText": "在“上海合作组织+”会议上，",
+        "afterText": "在“上海合作组织+”会议上，\u000b"
+      },
+      {
+        "index": 1,
+        "beforeTop": 297.0,
+        "afterTop": 293.25,
+        "beforeLeft": 49.5,
+        "afterLeft": 49.5,
+        "beforeText": "习近平主席提出全球治理倡议。",
+        "afterText": "习近平主席提出全球治理倡议。\u000b"
+      },
+      {
+        "index": 2,
+        "beforeTop": 324.0,
+        "afterTop": 320.25,
+        "beforeLeft": 49.5,
+        "afterLeft": 49.5,
+        "beforeText": "倡议以联合国宪章宗旨和原则",
+        "afterText": "倡议以联合国宪章宗旨和原则\u000b"
+      },
+      {
+        "index": 3,
+        "beforeTop": 351.0,
+        "afterTop": 347.25,
+        "beforeLeft": 49.5,
+        "afterLeft": 49.5,
+        "beforeText": "为基本遵循，主张改革完善",
+        "afterText": "为基本遵循，主张改革完善\u000b"
+      },
+      {
+        "index": 4,
+        "beforeTop": 378.0,
+        "afterTop": 374.25,
+        "beforeLeft": 49.5,
+        "afterLeft": 49.5,
+        "beforeText": "全球治理，提升发展中国家的",
+        "afterText": "全球治理，提升发展中国家的\u000b"
+      },
+      {
+        "index": 5,
+        "beforeTop": 405.0,
+        "afterTop": 401.25,
+        "beforeLeft": 49.5,
+        "afterLeft": 49.5,
+        "beforeText": "代表性和发言权。",
+        "afterText": "代表性和发言权。"
+      }
+    ]
+  },
+  {
+    "slide": 7,
+    "name": "v2-135",
+    "paragraphCount": 1,
+    "lineCount": 2,
+    "expectedLines": 2,
+    "lines": [
+      {
+        "index": 0,
+        "beforeTop": 304.5,
+        "afterTop": 301.5,
+        "beforeLeft": 452.25,
+        "afterLeft": 452.25,
+        "beforeText": "鼓励国际合作，帮助发展中国家加强人工智能",
+        "afterText": "鼓励国际合作，帮助发展中国家加强人工智能\u000b"
+      },
+      {
+        "index": 1,
+        "beforeTop": 330.75,
+        "afterTop": 327.5,
+        "beforeLeft": 452.25,
+        "afterLeft": 452.25,
+        "beforeText": "能力建设，增强其代表性和发言权。",
+        "afterText": "能力建设，增强其代表性和发言权。"
+      }
+    ]
+  },
+  {
+    "slide": 7,
+    "name": "v2-138",
+    "paragraphCount": 1,
+    "lineCount": 3,
+    "expectedLines": 3,
+    "lines": [
+      {
+        "index": 0,
+        "beforeTop": 406.5,
+        "afterTop": 404.25,
+        "beforeLeft": 452.25,
+        "afterLeft": 452.25,
+        "beforeText": "专业与技术能力，是表达需要、参与规则讨论的",
+        "afterText": "专业与技术能力，是表达需要、参与规则讨论的\u000b"
+      },
+      {
+        "index": 1,
+        "beforeTop": 430.5,
+        "afterTop": 428.25,
+        "beforeLeft": 452.25,
+        "afterLeft": 452.25,
+        "beforeText": "基础。决议确立合作方向，后续仍需要具体项目、",
+        "afterText": "基础。决议确立合作方向，后续仍需要具体项目、\u000b"
+      },
+      {
+        "index": 2,
+        "beforeTop": 454.5,
+        "afterTop": 452.25,
+        "beforeLeft": 452.25,
+        "afterLeft": 452.25,
+        "beforeText": "持续投入与符合本国需要的教育培训。",
+        "afterText": "持续投入与符合本国需要的教育培训。"
+      }
+    ]
+  },
+  {
+    "slide": 8,
+    "name": "v2-149",
+    "paragraphCount": 1,
+    "lineCount": 3,
+    "expectedLines": 3,
+    "lines": [
+      {
+        "index": 0,
+        "beforeTop": 250.5,
+        "afterTop": 247.5,
+        "beforeLeft": 49.5,
+        "afterLeft": 49.5,
+        "beforeText": "中国通过全球发展和南南合作基金提供支持，",
+        "afterText": "中国通过全球发展和南南合作基金提供支持，\u000b"
+      },
+      {
+        "index": 1,
+        "beforeTop": 276.75,
+        "afterTop": 273.5,
+        "beforeLeft": 49.5,
+        "afterLeft": 49.5,
+        "beforeText": "与联合国开发计划署（UNDP）及巴方合作，",
+        "afterText": "与联合国开发计划署（UNDP）及巴方合作，\u000b"
+      },
+      {
+        "index": 2,
+        "beforeTop": 303.0,
+        "afterTop": 299.5,
+        "beforeLeft": 49.5,
+        "afterLeft": 49.5,
+        "beforeText": "回应当地气候风险与防灾准备需要。",
+        "afterText": "回应当地气候风险与防灾准备需要。"
+      }
+    ]
+  },
+  {
+    "slide": 8,
+    "name": "v2-153",
+    "paragraphCount": 1,
+    "lineCount": 2,
+    "expectedLines": 2,
+    "lines": [
+      {
+        "index": 0,
+        "beforeTop": 384.0,
+        "afterTop": 381.0,
+        "beforeLeft": 50.25,
+        "afterLeft": 50.25,
+        "beforeText": "完善预警信息管理，加强社区防灾准备，",
+        "afterText": "完善预警信息管理，加强社区防灾准备，\u000b"
+      },
+      {
+        "index": 1,
+        "beforeTop": 410.25,
+        "afterTop": 407.0,
+        "beforeLeft": 50.25,
+        "afterLeft": 50.25,
+        "beforeText": "改善信息传播与相关协调能力。",
+        "afterText": "改善信息传播与相关协调能力。"
+      }
+    ]
+  }
+]

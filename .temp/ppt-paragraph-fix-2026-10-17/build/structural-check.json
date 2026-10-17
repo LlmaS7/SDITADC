@@ -1,0 +1,16 @@
+{
+  "paragraphs": 18,
+  "originalLineTextboxes": 53,
+  "removedTextboxes": 35,
+  "changedParts": [
+    "ppt/slides/slide2.xml",
+    "ppt/slides/slide3.xml",
+    "ppt/slides/slide4.xml",
+    "ppt/slides/slide5.xml",
+    "ppt/slides/slide6.xml",
+    "ppt/slides/slide7.xml",
+    "ppt/slides/slide8.xml"
+  ],
+  "unchangedParts": 67,
+  "originalSha256": "6d1120e13f3ee4d80aec503567f132b6eb3d1e57de2e0708d8e8924a53c50d4e"
+}

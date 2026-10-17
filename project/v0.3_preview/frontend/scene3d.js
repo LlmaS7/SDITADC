@@ -1,6 +1,8 @@
 import * as THREE from 'three';
 import { OrbitControls } from './vendor/OrbitControls.js';
 import { robotColor } from './robot-colors.js';
+import { theme } from './theme.js';
+const art = theme.scene;
 
 // Merge only filled rectangles, preserving holes and irregular obstacle shapes.
 function rectangles(points) {
@@ -22,7 +24,7 @@ function rectangles(points) {
   return result;
 }
 
-function label(text, color='#214253', background='#e6f2f6') {
+function label(text, color=art.labelInk, background=art.labelBg) {
   const canvas=document.createElement('canvas'); canvas.width=160; canvas.height=80;
   const c=canvas.getContext('2d'); c.fillStyle=background;
   c.beginPath(); c.roundRect(4,4,152,72,12); c.fill();
@@ -48,19 +50,19 @@ export class Scene3D {
     try {
       this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false});
       this.renderer.setPixelRatio(Math.min(devicePixelRatio || 1,2));
-      this.renderer.setClearColor(0x202d38);
+      this.renderer.setClearColor(art.bg);
       this.renderer.outputColorSpace=THREE.SRGBColorSpace;
       this.renderer.toneMapping=THREE.ACESFilmicToneMapping;
-      this.renderer.toneMappingExposure=1.1;
+      this.renderer.toneMappingExposure=art.exposure;
       container.prepend(this.renderer.domElement);
-      this.scene=new THREE.Scene(); this.scene.fog=new THREE.Fog(0x202d38,65,120);
+      this.scene=new THREE.Scene(); this.scene.fog=new THREE.Fog(art.bg,65,120);
       this.camera=new THREE.PerspectiveCamera(38,1,.1,150);
       this.controls=new OrbitControls(this.camera,this.renderer.domElement);
       this.controls.enableDamping=true; this.controls.dampingFactor=.08;
       this.controls.minDistance=12; this.controls.maxDistance=90;
       this.controls.maxPolarAngle=Math.PI*.48;
-      this.scene.add(new THREE.HemisphereLight(0xe9f5ff,0x5b6b67,2.4));
-      const sun=new THREE.DirectionalLight(0xfff0d8,3.2); sun.position.set(8,30,10); this.scene.add(sun);
+      this.scene.add(new THREE.HemisphereLight(art.light,art.ground,art.skyPower));
+      const sun=new THREE.DirectionalLight(art.sun,art.sunPower); sun.position.set(8,30,10); this.scene.add(sun);
       this.warehouse=new THREE.Group(); this.scene.add(this.warehouse);
       this.highlights=new THREE.Group(); this.scene.add(this.highlights);
       this.available=true;
@@ -102,7 +104,7 @@ export class Scene3D {
   }
   boxes(rects, height, elevation, color, inset=0) {
     if(!rects.length) return;
-    const mesh=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshStandardMaterial({color,roughness:.78,metalness:.12}),rects.length);
+    const mesh=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),new THREE.MeshStandardMaterial({color,roughness:art.roughness,metalness:art.metalness}),rects.length);
     const transform=new THREE.Object3D();
     rects.forEach((r,i)=>{
       transform.position.set(r.x+r.width/2,elevation,r.y+r.depth/2);
@@ -112,7 +114,7 @@ export class Scene3D {
   }
   box(width,height,depth,color,x,y,z,group=this.warehouse) {
     const mesh=new THREE.Mesh(new THREE.BoxGeometry(width,height,depth),
-      new THREE.MeshStandardMaterial({color,roughness:.78,metalness:.12}));
+      new THREE.MeshStandardMaterial({color,roughness:art.roughness,metalness:art.metalness}));
     mesh.position.set(x,y,z); group.add(mesh); return mesh;
   }
   setMap(map) {
@@ -124,20 +126,21 @@ export class Scene3D {
     for(const robot of this.robots.values()) {this.scene.remove(robot.group);dispose(robot.group);}
     this.robots.clear();
     const {width,height}=map;
-    const floor=new THREE.Mesh(new THREE.PlaneGeometry(width,height),new THREE.MeshStandardMaterial({color:0xd8e3e8,roughness:1}));
+    const floor=new THREE.Mesh(new THREE.PlaneGeometry(width,height),new THREE.MeshStandardMaterial({color:art.floor,roughness:1}));
     floor.rotation.x=-Math.PI/2; floor.position.set(width/2,0,height/2); this.warehouse.add(floor);
+    this.box(width+.35,.18,height+.35,art.base,width/2,-.13,height/2);
     const coords=[];
     for(let x=0;x<=width;x++) coords.push(x,.012,0,x,.012,height);
     for(let z=0;z<=height;z++) coords.push(0,.012,z,width,.012,z);
     const grid=new THREE.BufferGeometry(); grid.setAttribute('position',new THREE.Float32BufferAttribute(coords,3));
-    this.warehouse.add(new THREE.LineSegments(grid,new THREE.LineBasicMaterial({color:0x7f99aa,transparent:true,opacity:.32})));
-    this.boxes(rectangles(map.walls),.38,.19,0x466072);
+    this.warehouse.add(new THREE.LineSegments(grid,new THREE.LineBasicMaterial({color:art.grid,transparent:true,opacity:.32})));
+    this.boxes(rectangles(map.walls),.38,.19,art.wall);
     const racks=rectangles(map.shelves);
-    this.boxes(racks,1.55,.775,0x637d90,.14);
-    for(const y of [.38,.85,1.35]) this.boxes(racks,.055,y,0x8fa9b8,.08);
-    this.boxes(racks,.16,1.63,0x516b7c,.22);
-    this.boxes(map.obstacles.map(([x,y])=>({x,y,width:1,depth:1})),.62,.31,0xad8e65,.2);
-    for(const [points,color,prefix] of [[map.pickups,0x8dc9de,''],[map.deliveries,0x86cda8,'D'],[map.parking,0xaaa6d1,'P']]) {
+    this.boxes(racks,1.55,.775,art.rack,.14);
+    for(const y of [.38,.85,1.35]) this.boxes(racks,.055,y,art.rail,.08);
+    this.boxes(racks,.16,1.63,art.cap,.22);
+    this.boxes(map.obstacles.map(([x,y])=>({x,y,width:1,depth:1})),.62,.31,art.crate,.2);
+    for(const [points,color,prefix] of [[map.pickups,art.pickup,''],[map.deliveries,art.delivery,'D'],[map.parking,art.parking,'P']]) {
       points.forEach(([x,z],index)=>{
         this.box(.85,.025,.85,color,x+.5,.025,z+.5);
         const s=label(prefix==='P' ? 'P' : prefix+(index+1));
@@ -150,11 +153,11 @@ export class Scene3D {
     if(this.robots.has(id)) return this.robots.get(id);
     const g=new THREE.Group(), color=robotColor(id);
     this.box(.7,.26,.88,color,0,.29,0,g);
-    this.box(.52,.13,.62,0x354a5a,0,.48,0,g);
-    for(const x of [-.36,.36]) for(const z of [-.28,.28]) this.box(.13,.18,.24,0x273843,x,.16,z,g);
-    const cargo=this.box(.34,.3,.34,0xf1d59b,0,.69,0,g); cargo.visible=false;
-    const number=label('R'+id,'#163444'); number.position.set(0,1.08,0); number.scale.set(.72,.36,1); g.add(number);
-    const ring=new THREE.Mesh(new THREE.RingGeometry(.5,.58,32),new THREE.MeshBasicMaterial({color:0xf17b8c,side:THREE.DoubleSide}));
+    this.box(.52,.13,.62,art.body,0,.48,0,g);
+    for(const x of [-.36,.36]) for(const z of [-.28,.28]) this.box(.13,.18,.24,art.wheels,x,.16,z,g);
+    const cargo=this.box(.34,.3,.34,art.cargo,0,.69,0,g); cargo.visible=false;
+    const number=label('R'+id); number.position.set(0,1.08,0); number.scale.set(.72,.36,1); g.add(number);
+    const ring=new THREE.Mesh(new THREE.RingGeometry(.5,.58,32),new THREE.MeshBasicMaterial({color:art.urgent,side:THREE.DoubleSide}));
     ring.rotation.x=-Math.PI/2; ring.position.y=.04; ring.visible=false; g.add(ring);
     const result={group:g,cargo,ring}; this.robots.set(id,result); this.scene.add(g); return result;
   }
@@ -179,7 +182,7 @@ export class Scene3D {
     if(task) for(const [p,color,word] of [[task.pickup,0x198abd,'取'],[task.delivery,0x21996e,'送']]) {
       const ring=new THREE.Mesh(new THREE.RingGeometry(.6,.69,40),new THREE.MeshBasicMaterial({color,side:THREE.DoubleSide}));
       ring.rotation.x=-Math.PI/2; ring.position.set(p[0]+.5,.06,p[1]+.5); this.highlights.add(ring);
-      const s=label(word,'#174b58'); s.position.set(p[0]+.5,1.22,p[1]+.5); s.scale.set(.65,.325,1); this.highlights.add(s);
+      const s=label(word); s.position.set(p[0]+.5,1.22,p[1]+.5); s.scale.set(.65,.325,1); this.highlights.add(s);
     }
   }
   draw(state, positions) {

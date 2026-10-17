@@ -1,0 +1,22 @@
+const fs=require('node:fs'),path=require('node:path');
+const root=path.resolve(__dirname,'../../..'),assets=path.join(root,'project/v0.3_preview/frontend/assets');
+const a=fs.readFileSync(path.join(__dirname,'mark-a.svg'),'utf8');
+const titled=a.replace('<g fill-rule=', '<title>AWCS · 智能仓储协同调度系统</title><desc>A版无底银灰图形，琥珀路径以深色细线分隔。</desc><g fill-rule=');
+fs.writeFileSync(path.join(assets,'logo-mark.svg'),titled);
+const iconFile=path.join(assets,'logo-icon.svg');
+let icon=fs.readFileSync(iconFile,'utf8');
+icon=icon.replace('fill="#fff"','fill="#1c2024"');
+// Share the exact approved emblem paths; retain the existing AWCS caption.
+const group=a.match(/<g fill-rule="evenodd">.*?<\/g>/)[0];
+icon=icon.replace(/(<g transform="translate\(-1 10\) scale\(\.043\)">)<g fill-rule="evenodd">.*?<\/g>/,'$1'+group).replaceAll('#24292e','#aeb7be');
+fs.writeFileSync(iconFile,icon);
+const tests=path.join(root,'project/v0.3_preview/output/playwright');
+let verify=fs.readFileSync(path.join(tests,'verify_selected_logo.js'),'utf8');
+verify=verify.replaceAll('awcs-selected-','awcs-a-');
+verify=verify.replace("check('graphite amber artwork has white support',await page.locator('.awcs-mark').first().evaluate(e=>getComputedStyle(e).backgroundColor)==='rgb(255, 255, 255)');", "check('A variant has no backing plate',await page.locator('.awcs-mark').first().evaluate(e=>{const s=getComputedStyle(e);return s.backgroundColor==='rgba(0, 0, 0, 0)'&&s.borderWidth==='0px'&&s.boxShadow==='none';}));");
+verify=verify.replace("check('approved graphite and theme amber retained',mark.includes('#24292e')&&mark.includes('#e6b568'));", "check('approved silver amber and dark route separators retained',mark.includes('#aeb7be')&&mark.includes('#e6b568')&&mark.includes('stroke=\"#1c2024\"'));");
+verify=verify.replace("[['logo',1440,420],['logo-icon',512,512],['logo-stacked',1536,1024]]", "[['logo-mark',1100,372],['logo-icon',512,512]]");
+verify=verify.replace('horizontal stacked and icon PNG exports complete','transparent UI mark and dark icon PNG exports complete');
+verify=verify.replace('Approved attached AWCS AW coordinated-route artwork, vector tracing, white support, software branding and PNG exports.', 'Approved A silver/amber mark without a backing plate, main and assistant UI, dark favicon and PNG exports.');
+fs.writeFileSync(path.join(tests,'verify_a_logo.js'),verify);
+console.log('Applied exact A SVG, dark favicon, UI size/spacing and dedicated acceptance script.');
